@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { dashboardRoute } from "../modules/dashboard/routes";
-import { loginRoutes } from "../modules/login/routes";
+import { authRoutes } from "../modules/auth/route";
 
 const router = createRouter({
   history: createWebHistory(),
-  routes: [...dashboardRoute, ...loginRoutes],
+  routes: [...dashboardRoute, ...authRoutes],
 });
 
 export default router;

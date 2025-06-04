@@ -1,2 +1,6 @@
 @import "tailwindcss";
 @import "tailwindcss-primeui";
+
+:root {
+  --p-button-primary-color: #fff;
+}
