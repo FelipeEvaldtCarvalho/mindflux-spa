@@ -3,6 +3,7 @@
 
 :root {
   --p-button-primary-color: #fff;
+  --p-menu-item-focus-background: var(--p-primary-200) !important;
 }
 
 * {
