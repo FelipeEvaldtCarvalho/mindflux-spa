@@ -1,5 +1,6 @@
 import { reactive, toRefs, computed } from "vue";
-import axios from "axios";
+import service from "../services";
+import router from "../../../../router";
 
 const state = reactive({
   isSubmitting: false,
@@ -14,13 +15,16 @@ const login = async () => {
       email: state.email,
       password: state.password,
     };
-    const { data } = await axios.post(
-      "http://localhost:3000/auth/login",
-      payload
-    );
-    console.log("Login successful:", data);
+    state.isSubmitting = true;
+    const { token } = await service.login(payload);
+    localStorage.setItem("user_token", token);
+    router.push({ name: "Dashboard" });
   } catch (error) {
     console.error("Login failed:", error);
+  } finally {
+    state.isSubmitting = false;
+    state.email = "";
+    state.password = "";
   }
 };
 

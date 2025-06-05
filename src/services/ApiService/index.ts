@@ -9,7 +9,7 @@ class ApiService {
 
   private constructor() {
     this.axiosInstance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "",
+      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/",
     });
 
     // Request interceptor
