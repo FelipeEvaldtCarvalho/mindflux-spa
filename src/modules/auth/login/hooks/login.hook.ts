@@ -18,7 +18,7 @@ const login = async () => {
     state.isSubmitting = true;
     const { token } = await service.login(payload);
     localStorage.setItem("user_token", token);
-    router.push({ name: "Dashboard" });
+    router.push({ name: "Home" });
   } catch (error) {
     console.error("Login failed:", error);
   } finally {
