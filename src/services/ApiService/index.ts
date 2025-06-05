@@ -33,7 +33,7 @@ class ApiService {
       (response) => response,
       (error) => {
         const status = error.response?.status;
-        const message = error.response?.data?.message;
+        const message = error.response?.statusText;
 
         if (status === 401 && message === "Unauthorized") {
           localStorage.removeItem("user_token");
