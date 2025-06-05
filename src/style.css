@@ -4,3 +4,7 @@
 :root {
   --p-button-primary-color: #fff;
 }
+
+* {
+  font-family: "Montserrat", sans-serif;
+}

@@ -1,10 +1,6 @@
-<script setup></script>
-
+<script setup lang="ts">
+import { RouterView } from "vue-router";
+</script>
 <template>
   <RouterView />
 </template>
-<style>
-* {
-  font-family: "Montserrat", sans-serif;
-}
-</style>

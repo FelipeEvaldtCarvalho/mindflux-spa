@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";

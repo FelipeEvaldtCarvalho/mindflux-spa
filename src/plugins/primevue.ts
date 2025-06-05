@@ -2,7 +2,7 @@ import PrimeVue from "primevue/config";
 import { definePreset } from "@primeuix/themes";
 import Aura from "@primeuix/themes/aura";
 
-export const primevueConfig = definePreset(Aura, {
+const primevueConfig = definePreset(Aura, {
   semantic: {
     primary: {
       50: "#f2f7ff",
@@ -45,5 +45,14 @@ export const primevueConfig = definePreset(Aura, {
     },
   },
 });
+
+export const primeVueOptions = {
+  theme: {
+    preset: primevueConfig,
+    options: {
+      darkModeSelector: "none",
+    },
+  },
+};
 
 export default PrimeVue;
