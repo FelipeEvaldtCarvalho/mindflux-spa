@@ -1,5 +1,5 @@
 import type { Router } from "vue-router";
-import apiService from "@/services/ApiService";
+import apiService from "@/services/api.service";
 
 export function setupAuthGuard(router: Router) {
   router.beforeEach(async (to, _, next) => {

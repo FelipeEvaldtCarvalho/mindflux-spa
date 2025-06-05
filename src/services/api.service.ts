@@ -1,7 +1,7 @@
 import axios from "axios";
 import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
 
-import router from "../../router";
+import router from "../router";
 
 class ApiService {
   private static instance: ApiService;

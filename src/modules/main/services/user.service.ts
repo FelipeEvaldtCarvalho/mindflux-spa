@@ -1,4 +1,4 @@
-import apiService from "@/services/ApiService";
+import apiService from "@/services/api.service";
 import type { AxiosInstance } from "axios";
 import type { User, CachedUser } from "../services/user.types";
 
