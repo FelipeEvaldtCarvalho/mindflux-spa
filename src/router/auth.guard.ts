@@ -5,7 +5,7 @@ export function setupAuthGuard(router: Router) {
   router.beforeEach(async (to, _, next) => {
     if (to.path.startsWith("/auth")) {
       const token = localStorage.getItem("user_token");
-      if (!token) next();
+      if (!token) return next();
       try {
         await apiService.axios.get("/auth/verify-token");
         return next("/");

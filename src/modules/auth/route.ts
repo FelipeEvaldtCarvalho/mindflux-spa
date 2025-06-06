@@ -1,9 +1,9 @@
 import type { RouteRecordRaw } from "vue-router";
-import { defineAsyncComponent } from "vue";
 import { loginRoute } from "./login/route";
+import { createRoute } from "./create/route";
 
 export const authRoute: Readonly<RouteRecordRaw> = {
   path: "/auth",
-  component: defineAsyncComponent(() => import("./Auth.page.vue")),
-  children: [loginRoute],
+  component: () => import("./Auth.page.vue"),
+  children: [loginRoute, createRoute],
 };
