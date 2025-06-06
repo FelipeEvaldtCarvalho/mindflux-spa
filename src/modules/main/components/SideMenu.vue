@@ -5,6 +5,8 @@ import Avatar from "primevue/avatar";
 import Button from "primevue/button";
 import { useUser } from "../hooks/user.hook";
 import { useMain } from "../hooks/main.hook";
+import { useRouter } from "vue-router";
+const router = useRouter();
 
 const { user } = useUser();
 const { logout } = useMain();
@@ -15,10 +17,12 @@ const items = ref([
       {
         label: "Dashboard",
         icon: "dashboard",
+        to: "/",
       },
       {
         label: "Clientes",
         icon: "groups",
+        to: "/customers",
       },
     ],
   },
@@ -40,7 +44,11 @@ const items = ref([
         </div>
       </template>
       <template #item="{ item, props }">
-        <a class="flex items-center font-semibold" v-bind="props.action">
+        <a
+          class="flex items-center font-semibold"
+          v-bind="props.action"
+          @click="router.push(item.to)"
+        >
           <i class="material-icons">{{ item.icon }}</i>
           <span>{{ item.label }}</span>
         </a>

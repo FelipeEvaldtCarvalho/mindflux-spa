@@ -1,9 +1,9 @@
 import type { RouteRecordRaw } from "vue-router";
-import { defineAsyncComponent } from "vue";
 import { homeRoute } from "../home/route";
+import { customersRoute } from "@/modules/customers/route";
 
 export const mainRoute: Readonly<RouteRecordRaw> = {
   path: "/",
-  component: defineAsyncComponent(() => import("./Main.page.vue")),
-  children: [homeRoute],
+  component: () => import("./Main.page.vue"),
+  children: [homeRoute, customersRoute],
 };
