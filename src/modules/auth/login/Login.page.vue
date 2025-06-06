@@ -3,8 +3,10 @@ import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";
 import { useLogin } from "./hooks/login.hook";
+import { useRouter } from "vue-router";
 
 const { email, password, login, isDisabledButton } = useLogin();
+const { push } = useRouter();
 </script>
 <template>
   <form
@@ -40,7 +42,13 @@ const { email, password, login, isDisabledButton } = useLogin();
       </div>
       <div class="grid gap-2 w-full text-center">
         <p class="text-sm">Não tem uma conta?</p>
-        <Button label="Criar uma conta" type="submit" fluid size="small" text />
+        <Button
+          label="Criar uma conta"
+          fluid
+          size="small"
+          text
+          @click="push({ name: 'auth.create' })"
+        />
       </div>
     </div>
   </form>
