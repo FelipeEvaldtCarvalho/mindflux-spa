@@ -1,14 +1,20 @@
 import apiService from "@/services/api.service";
 import type { AxiosInstance } from "axios";
-import type { Customers } from "./customers.types";
+import type { Customers, CreateCustomer } from "./customers.types";
 
 class CustomersService {
-  constructor(private readonly apiService: AxiosInstance) {}
+  constructor(
+    private readonly apiService: AxiosInstance,
+    private readonly apiRoute: string = "/customers"
+  ) {}
 
   async getData(): Promise<Customers> {
-    const apiRoute = "/customers";
-    const { data } = await this.apiService.get(apiRoute);
+    const { data } = await this.apiService.get(this.apiRoute);
     return data;
+  }
+
+  async createCustomer(payload: CreateCustomer): Promise<any> {
+    return await this.apiService.post(this.apiRoute, payload);
   }
 }
 

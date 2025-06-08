@@ -1,4 +1,4 @@
-export type Customer = {
+type Customer = {
   id: number;
   name: string;
   document: string | null;
@@ -8,3 +8,5 @@ export type Customer = {
 };
 
 export type Customers = Customer[];
+
+export type CreateCustomer = Partial<Customer>;

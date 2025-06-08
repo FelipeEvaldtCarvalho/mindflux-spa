@@ -7,6 +7,7 @@ import TabPanels from "primevue/tabpanels";
 </script>
 <template>
   <section class="grid m-6 gap-4 w-full h-fit">
+    <h1 class="text-xl font-bold text-primary-900">Clientes:</h1>
     <Tabs value="0">
       <CustomersTabs />
       <TabPanels>
