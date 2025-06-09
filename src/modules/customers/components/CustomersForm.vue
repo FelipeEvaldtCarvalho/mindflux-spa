@@ -14,11 +14,13 @@ const { createCustomer } = useCustomers();
 
 const schema = toTypedSchema(
   z.object({
-    name: z.string().nonempty("Campo obrigatório"),
+    name: z.string({ required_error: "Campo obrigatório" }),
     document: z.string().optional(),
     birthdate: z.date().optional(),
     address: z.string().optional(),
-    phone: z.string().min(10, "Telefone inválido"),
+    phone: z
+      .string({ required_error: "Campo obrigatório" })
+      .min(10, "Telefone inválido"),
   })
 );
 
