@@ -10,8 +10,10 @@ onMounted(async () => {
 });
 </script>
 <template>
-  <section class="flex w-full h-screen">
+  <div class="flex flex-col lg:flex-row min-h-dvh">
     <SideMenu />
-    <RouterView />
-  </section>
+    <div class="max-w-full flex-1 overflow-hidden">
+      <RouterView />
+    </div>
+  </div>
 </template>
