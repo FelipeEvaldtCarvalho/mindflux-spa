@@ -52,7 +52,6 @@ export const useCustomers = () => {
     initialized.value = true;
   }
 
-  customersService.getData();
   return {
     ...toRefs(state),
     createCustomer,
