@@ -11,7 +11,7 @@ import FeedBack from "@/components/FeedBack.vue";
 import { FilterMatchMode } from "@primevue/core/api";
 import { ref, nextTick } from "vue";
 import { useCustomers } from "../hooks/customers.hook";
-
+import { phoneMask } from "@/helpers/masks.helper";
 const { customers } = useCustomers();
 
 const filters = ref({
@@ -98,7 +98,11 @@ const menuItems = [
         </template>
       </Column>
 
-      <Column field="phone" header="Contato" />
+      <Column field="phone" header="Contato">
+        <template #body="{ data }">
+          {{ phoneMask(data.phone) }}
+        </template>
+      </Column>
 
       <Column header="Ações" body-class="text-right" style="width: 60px">
         <template #body="{ index }">
