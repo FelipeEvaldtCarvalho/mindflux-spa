@@ -43,6 +43,11 @@ const items = ref([
         icon: "groups",
         to: "/customers",
       },
+      {
+        label: "Atendimentos",
+        icon: "psychology",
+        to: "/counseling",
+      },
     ],
   },
 ]);
