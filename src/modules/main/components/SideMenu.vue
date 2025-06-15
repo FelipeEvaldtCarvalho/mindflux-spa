@@ -9,7 +9,7 @@ import { useRouter } from "vue-router";
 import { useBreakpoint } from "@/hooks/mq.hook";
 
 const router = useRouter();
-const { breakpoint, isLgAndUp } = useBreakpoint();
+const { isLgAndUp } = useBreakpoint();
 
 const { user } = useUser();
 const { logout } = useMain();
@@ -29,6 +29,13 @@ const showMenu = computed(() => {
 const isMinimizedSidebar = computed(() => {
   return !isSidebarExpanded.value && isLgAndUp();
 });
+
+const handleItemClick = (item: any) => {
+  if (item.to) {
+    router.push(item.to);
+    isMenuOpen.value = false;
+  }
+};
 
 const items = ref([
   {
@@ -70,7 +77,6 @@ const items = ref([
           network_intel_node
         </span>
         MindFlux
-        {{ breakpoint }}
       </div>
       <i class="material-icons cursor-pointer" @click="isMenuOpen = !isMenuOpen"
         >grid_view</i
@@ -95,10 +101,7 @@ const items = ref([
           <span class="material-symbols-outlined !text-4xl">
             network_intel_node
           </span>
-          <span v-if="!isMinimizedSidebar" class="">
-            MindFlux
-            {{ breakpoint }}
-          </span>
+          <span v-if="!isMinimizedSidebar" class=""> MindFlux </span>
         </div>
         <i
           class="material-icons cursor-pointer lg:!hidden"
@@ -126,7 +129,7 @@ const items = ref([
             '': isSidebarExpanded,
           }"
           v-bind="props.action"
-          @click="router.push(item.to)"
+          @click="handleItemClick(item)"
         >
           <i class="material-icons">{{ item.icon }}</i>
           <span v-if="!isMinimizedSidebar">{{ item.label }}</span>
