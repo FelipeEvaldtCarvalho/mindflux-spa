@@ -5,7 +5,7 @@ import { useDashboard } from "./hooks/dashboard.hook";
 const { dashboardData } = useDashboard();
 </script>
 <template>
-  <section class="grid grid-cols-3 m-6 gap-4 w-full h-fit">
+  <section class="grid md:grid-cols-2 lg:grid-cols-3 m-6 gap-4 h-fit">
     <Card class="!bg-primary-100">
       <template #title>
         <h2 class="text-lg font-semibold">Clientes cadastrados:</h2>
