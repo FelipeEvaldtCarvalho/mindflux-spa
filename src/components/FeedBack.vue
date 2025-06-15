@@ -1,3 +1,8 @@
+<script lang="ts">
+export default {
+  name: "FeedBack",
+};
+</script>
 <script setup lang="ts">
 defineProps<{
   title?: string;
