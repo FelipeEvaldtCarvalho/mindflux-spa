@@ -1,6 +1,7 @@
 import { reactive, toRefs } from "vue";
 import userService from "../services/user.service";
 import type { User } from "../services/user.types";
+import logoutService from "@/services/logout.service";
 
 const state = reactive({
   isLoading: true,
@@ -12,7 +13,7 @@ const getUser = async () => {
     state.isLoading = true;
     state.user = await userService.me();
   } catch (error) {
-    console.error("Error fetching user:", error);
+    logoutService.logout();
   } finally {
     state.isLoading = false;
   }
