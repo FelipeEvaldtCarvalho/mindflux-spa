@@ -10,8 +10,11 @@ import Menu from "primevue/menu";
 import FeedBack from "@/components/FeedBack.vue";
 import { FilterMatchMode } from "@primevue/core/api";
 import { ref, nextTick } from "vue";
+import { useRouter } from "vue-router";
 import { useCustomers } from "../hooks/customers.hook";
 import { phoneMask } from "@/helpers/masks.helper";
+
+const router = useRouter();
 const { customers } = useCustomers();
 
 const filters = ref({
@@ -31,7 +34,7 @@ const showMenu = (event: Event, index: number) => {
   });
 };
 
-const menuItems = [
+const getMenuItems = (customer: any) => [
   {
     label: "Editar",
     icon: "pi pi-pencil",
@@ -48,9 +51,9 @@ const menuItems = [
     command: () => console.log("anamnese"),
   },
   {
-    label: "Ver Atendimento",
+    label: "Ver Atendimentos",
     icon: "pi pi-eye",
-    command: () => console.log("atendimento"),
+    command: () => router.push(`/counseling/customer/${customer.id}`),
   },
 ];
 </script>
@@ -105,7 +108,7 @@ const menuItems = [
       </Column>
 
       <Column header="Ações" body-class="text-right" style="width: 60px">
-        <template #body="{ index }">
+        <template #body="{ data, index }">
           <Button
             icon="pi pi-ellipsis-v"
             severity="secondary"
@@ -113,7 +116,11 @@ const menuItems = [
             @click="showMenu($event, index)"
             aria-haspopup="true"
           />
-          <Menu :ref="(el) => setMenuRef(el, index)" :model="menuItems" popup />
+          <Menu
+            :ref="(el) => setMenuRef(el, index)"
+            :model="getMenuItems(data)"
+            popup
+          />
         </template>
       </Column>
     </DataTable>
