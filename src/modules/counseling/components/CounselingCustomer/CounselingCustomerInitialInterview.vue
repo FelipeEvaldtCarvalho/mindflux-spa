@@ -31,31 +31,31 @@ const {
         @click="updateData"
       />
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold" for="description"
+        <label class="font-bold"
           >O que te trouxe para a terapia nesse momento?</label
         >
         <Textarea rows="2" v-model="reason" :disabled="loading" />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold" for="description"
+        <label class="font-bold"
           >Há quanto tempo você vem se sentindo assim?</label
         >
         <Textarea rows="2" v-model="symptomsTime" :disabled="loading" />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold" for="description"
+        <label class="font-bold"
           >Como isso está afetando sua vida no dia a dia?</label
         >
         <Textarea rows="2" v-model="dailyLife" :disabled="loading" />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold" for="description"
+        <label class="font-bold"
           >Você já fez terapia antes? Como foi sua experiência?</label
         >
         <Textarea rows="2" v-model="hasHadTherapy" :disabled="loading" />
       </div>
       <div class="flex flex-col gap-2">
-        <label class="text-sm font-bold" for="description"
+        <label class="font-bold"
           >O que voce espera alcancar com a terapia?</label
         >
         <Textarea rows="2" v-model="expectations" :disabled="loading" />

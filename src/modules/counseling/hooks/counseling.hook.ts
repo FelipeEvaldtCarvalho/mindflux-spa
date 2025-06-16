@@ -3,7 +3,6 @@ import { ref, reactive, toRefs } from "vue";
 import counselingService from "../services/counseling.service";
 import { useRoute } from "vue-router";
 
-const initialized = ref(false);
 const loading = ref(false);
 
 const customerCounselingState = reactive<CounselingData>({
@@ -53,14 +52,10 @@ export const useCounseling = () => {
     }
   };
 
-  if (!initialized.value) {
-    getData();
-    initialized.value = true;
-  }
-
   return {
     ...toRefs(customerCounselingState),
     loading,
     updateData,
+    getData,
   };
 };
