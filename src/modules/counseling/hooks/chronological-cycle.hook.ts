@@ -1,6 +1,7 @@
 import { ref, reactive, toRefs, watch } from "vue";
 import chronologicalCycleService from "../services/chronological-cycle.service";
 import { useRoute } from "vue-router";
+import { useToast } from "primevue/usetoast";
 import type {
   ChronologicalCycle,
   ChronologicalCycleFormData,
@@ -24,6 +25,8 @@ const chronologicalCycleFormState = reactive<ChronologicalCycleFormData>({
 
 export const useChronologicalCycle = () => {
   const route = useRoute();
+  const toast = useToast();
+
   const getData = async () => {
     chronologicalCycleState.isLoading = true;
     try {
@@ -35,6 +38,12 @@ export const useChronologicalCycle = () => {
       chronologicalCycleState.list = data;
     } catch (error) {
       console.error("Error fetching customers data:", error);
+      toast.add({
+        severity: "error",
+        summary: "Erro",
+        detail: "Erro ao carregar os ciclos cronológicos",
+        life: 3000,
+      });
     } finally {
       chronologicalCycleState.isLoading = false;
     }
@@ -55,9 +64,58 @@ export const useChronologicalCycle = () => {
       const data = await chronologicalCycleService.createChronologicalCycle(
         payload
       );
-      console.log(data);
+
+      chronologicalCycleState.list.push(data);
+
+      chronologicalCycleFormState.cycle = "";
+      chronologicalCycleFormState.fase = "";
+      chronologicalCycleFormState.emotionalScale = "";
+      chronologicalCycleFormState.physicalScale = "";
+
+      toast.add({
+        severity: "success",
+        summary: "Sucesso",
+        detail: "Ciclo cronológico criado com sucesso",
+        life: 3000,
+      });
+    } catch {
+      toast.add({
+        severity: "error",
+        summary: "Erro",
+        detail: "Erro ao criar ciclo cronológico",
+        life: 3000,
+      });
+    } finally {
+      chronologicalCycleState.isSaving = false;
+    }
+  };
+
+  const saveOrder = async () => {
+    chronologicalCycleState.isSaving = true;
+    try {
+      const cycles: { id: number; order: number }[] =
+        chronologicalCycleState.list.map((cycle, index) => {
+          return {
+            id: cycle.id,
+            order: index + 1,
+          };
+        });
+      await chronologicalCycleService.updateOrder(cycles);
+
+      toast.add({
+        severity: "success",
+        summary: "Sucesso",
+        detail: "Ordem dos ciclos salva com sucesso",
+        life: 3000,
+      });
     } catch (error) {
-      console.error("Error creating cycle:", error);
+      console.error("Erro ao salvar ordem:", error);
+      toast.add({
+        severity: "error",
+        summary: "Erro",
+        detail: "Erro ao salvar a ordem dos ciclos",
+        life: 3000,
+      });
     } finally {
       chronologicalCycleState.isSaving = false;
     }
@@ -73,6 +131,7 @@ export const useChronologicalCycle = () => {
     selectedCycle,
     getData,
     createCycle,
+    saveOrder,
     selectedDate,
   };
 };

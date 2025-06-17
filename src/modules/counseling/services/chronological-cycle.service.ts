@@ -3,6 +3,7 @@ import type { AxiosInstance } from "axios";
 import type {
   ChronologicalCycle,
   CreateChronologicalCyclePayload,
+  UpdateOrderPayload,
 } from "./chronological-cycle.types";
 
 class ChronologicalCycleService {
@@ -29,6 +30,25 @@ class ChronologicalCycleService {
       payload
     );
     return data;
+  }
+
+  async updateChronologicalCycle(
+    id: number,
+    payload: Partial<ChronologicalCycle>
+  ): Promise<ChronologicalCycle> {
+    const { data } = await this.apiService.patch<ChronologicalCycle>(
+      `${this.apiRoute}${id}`,
+      payload
+    );
+    return data;
+  }
+
+  async deleteChronologicalCycle(id: number): Promise<void> {
+    await this.apiService.delete(`${this.apiRoute}${id}`);
+  }
+
+  async updateOrder(cycles: UpdateOrderPayload[]): Promise<void> {
+    await this.apiService.post("/chronological-cycle/order", cycles);
   }
 }
 

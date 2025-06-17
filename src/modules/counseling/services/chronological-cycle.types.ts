@@ -3,6 +3,11 @@ export interface Customer {
   name?: string;
 }
 
+export interface UpdateOrderPayload {
+  id: number;
+  order: number;
+}
+
 export interface ChronologicalCycle {
   id: number;
   customer: Customer;
