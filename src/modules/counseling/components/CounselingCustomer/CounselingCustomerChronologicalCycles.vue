@@ -1,6 +1,6 @@
 <script lang="ts">
 export default {
-  name: "CounselingCustomer",
+  name: "CounselingCustomerChronologicalCycles",
 };
 </script>
 <script setup lang="ts">
@@ -12,7 +12,8 @@ import { onMounted } from "vue";
 
 import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
 
-const { selectedDate, getData, list, isLoading } = useChronologicalCycle();
+const { selectedDate, getData, list, isLoading, isSaving, saveOrder } =
+  useChronologicalCycle();
 
 onMounted(getData);
 </script>
@@ -32,7 +33,12 @@ onMounted(getData);
           :disabled="isLoading"
         />
       </div>
-      <DraggableList v-model="list" :loading="isLoading" />
+      <DraggableList
+        v-model="list"
+        :loading="isLoading"
+        :saving="isSaving"
+        @save="saveOrder"
+      />
       <CycleForm />
     </div>
   </TabPanel>

@@ -22,6 +22,7 @@ interface CycleItem {
 const props = defineProps<{
   modelValue: CycleItem[];
   loading?: boolean;
+  saving?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -29,6 +30,7 @@ const emit = defineEmits<{
   "save:modelValue": [value: CycleItem[]];
   "edit:selected": [value: CycleItem];
   "delete:selected": [value: CycleItem];
+  save: void;
 }>();
 
 const draggedIndex = ref<number | null>(null);
@@ -326,7 +328,10 @@ const moveSelectedDown = () => {
         icon="pi pi-save"
         severity="success"
         rounded
-        @click="emit('save:modelValue', modelValue)"
+        @click="emit('save')"
+        :loading="saving"
+        :disabled="loading || saving"
+        title="Salvar ordem"
       />
       <Button
         icon="pi pi-pencil"
