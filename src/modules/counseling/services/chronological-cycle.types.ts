@@ -15,6 +15,7 @@ export interface ChronologicalCycle {
 }
 
 export interface CreateChronologicalCyclePayload {
+  customerId: number;
   date: string;
   cycle: string;
   fase: string;

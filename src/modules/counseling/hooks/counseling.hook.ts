@@ -20,7 +20,7 @@ const customerCounselingState = reactive<CounselingData>({
 
 export const useCounseling = () => {
   const route = useRoute();
-  const customerId = route.params.id as string;
+  const customerId = Number(route.params.id);
 
   const getData = async () => {
     loading.value = true;

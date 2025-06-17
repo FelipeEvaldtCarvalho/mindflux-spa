@@ -8,25 +8,24 @@ import type {
 class ChronologicalCycleService {
   constructor(
     private readonly apiService: AxiosInstance,
-    private readonly apiRoute: string = "/chronological-cycle/customer/"
+    private readonly apiRoute: string = "/chronological-cycle/"
   ) {}
 
   async getChronologicalCycleByDate(
-    customerId: string,
+    customerId: number,
     date: string
   ): Promise<ChronologicalCycle[]> {
     const { data } = await this.apiService.get<ChronologicalCycle[]>(
-      `${this.apiRoute}${customerId}/date/${date}`
+      `${this.apiRoute}customer/${customerId}/date/${date}`
     );
     return data;
   }
 
   async createChronologicalCycle(
-    customerId: string,
     payload: CreateChronologicalCyclePayload
   ): Promise<ChronologicalCycle> {
     const { data } = await this.apiService.post<ChronologicalCycle>(
-      `${this.apiRoute}${customerId}`,
+      `${this.apiRoute}`,
       payload
     );
     return data;

@@ -1,4 +1,4 @@
-import { ref, reactive, toRefs } from "vue";
+import { ref, reactive, toRefs, watch } from "vue";
 import chronologicalCycleService from "../services/chronological-cycle.service";
 import { useRoute } from "vue-router";
 import type {
@@ -9,7 +9,7 @@ import type {
 const chronologicalCycleState = reactive({
   isLoading: false,
   isSaving: false,
-  chronologicalCycles: [] as ChronologicalCycle[],
+  list: [] as ChronologicalCycle[],
 });
 
 const selectedCycle = ref<ChronologicalCycle | undefined>();
@@ -25,23 +25,27 @@ const chronologicalCycleFormState = reactive<ChronologicalCycleFormData>({
 export const useChronologicalCycle = () => {
   const route = useRoute();
   const getData = async () => {
+    chronologicalCycleState.isLoading = true;
     try {
-      const customerId = route.params.id as string;
+      const customerId = Number(route.params.id);
       const data = await chronologicalCycleService.getChronologicalCycleByDate(
         customerId,
         selectedDate.value.toISOString().split("T")[0]
       );
-      console.log(data);
+      chronologicalCycleState.list = data;
     } catch (error) {
       console.error("Error fetching customers data:", error);
     } finally {
+      chronologicalCycleState.isLoading = false;
     }
   };
 
   const createCycle = async () => {
+    chronologicalCycleState.isSaving = true;
     try {
-      const customerId = route.params.id as string;
+      const customerId = Number(route.params.id);
       const payload = {
+        customerId,
         date: selectedDate.value.toISOString().split("T")[0],
         cycle: chronologicalCycleFormState.cycle,
         fase: chronologicalCycleFormState.fase,
@@ -49,15 +53,19 @@ export const useChronologicalCycle = () => {
         physicalScale: chronologicalCycleFormState.physicalScale,
       };
       const data = await chronologicalCycleService.createChronologicalCycle(
-        customerId,
         payload
       );
       console.log(data);
     } catch (error) {
       console.error("Error creating cycle:", error);
     } finally {
+      chronologicalCycleState.isSaving = false;
     }
   };
+
+  watch(selectedDate, () => {
+    getData();
+  });
 
   return {
     ...toRefs(chronologicalCycleState),

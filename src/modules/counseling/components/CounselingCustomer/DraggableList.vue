@@ -21,6 +21,7 @@ interface CycleItem {
 
 const props = defineProps<{
   modelValue: CycleItem[];
+  loading?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -356,7 +357,11 @@ const moveSelectedDown = () => {
 
       <!-- Lista -->
       <div class="max-h-80 overflow-y-auto relative">
+        <div v-if="loading" class="p-8 text-center text-gray-500">
+          Carregando...
+        </div>
         <div
+          v-else
           v-for="(item, index) in modelValue"
           :key="item.id"
           :data-index="index"
@@ -397,7 +402,10 @@ const moveSelectedDown = () => {
         ></div>
       </div>
 
-      <div v-if="!modelValue.length" class="p-8 text-center text-gray-500">
+      <div
+        v-if="!modelValue.length && !loading"
+        class="p-8 text-center text-gray-500"
+      >
         Nenhum ciclo cronológico encontrado
       </div>
 

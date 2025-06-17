@@ -8,7 +8,7 @@ class CounselingService {
     private readonly apiRoute: string = "/counseling/customer/"
   ) {}
 
-  async getCustomerCounseling(customerId: string): Promise<CounselingData> {
+  async getCustomerCounseling(customerId: number): Promise<CounselingData> {
     const { data } = await this.apiService.get<CounselingData>(
       `${this.apiRoute}${customerId}`
     );
@@ -16,7 +16,7 @@ class CounselingService {
   }
 
   async updateCustomerCounseling(
-    customerId: string,
+    customerId: number,
     payload: Partial<CounselingData>
   ): Promise<CounselingData> {
     const { data } = await this.apiService.patch<CounselingData>(
