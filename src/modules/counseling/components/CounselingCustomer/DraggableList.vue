@@ -7,6 +7,11 @@ export default {
 <script setup lang="ts">
 import { ref, defineProps, defineEmits } from "vue";
 import Button from "primevue/button";
+import ProgressSpinner from "primevue/progressspinner";
+
+import { useChronologicalCycle } from "../../hooks/chronological-cycle.hook";
+
+const { hasOrderChanged } = useChronologicalCycle();
 
 interface CycleItem {
   id: number;
@@ -53,12 +58,10 @@ const onDragOver = (event: DragEvent, index: number) => {
   dragOverIndex.value = index;
 
   if (draggedIndex.value !== null && draggedIndex.value !== index) {
-    // Calcula onde o item será inserido
     const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
     const mouseY = event.clientY;
     const itemMiddle = rect.top + rect.height / 2;
 
-    // Se mouse está na metade superior, insere antes; senão, insere depois
     if (mouseY < itemMiddle) {
       dropIndicatorIndex.value = index;
     } else {
@@ -88,27 +91,21 @@ const onDrop = (event: DragEvent, dropIndex: number) => {
   const draggedItem = items[draggedIndex.value];
   const oldIndex = draggedIndex.value;
 
-  // Usa o indicador de posição se disponível, senão usa a lógica anterior
   let insertIndex =
     dropIndicatorIndex.value !== null ? dropIndicatorIndex.value : dropIndex;
 
-  // Remove o item da posição original
   items.splice(draggedIndex.value, 1);
 
-  // Ajusta o índice de inserção se necessário
   if (draggedIndex.value < insertIndex) {
     insertIndex--;
   }
 
-  // Insere na nova posição
   items.splice(insertIndex, 0, draggedItem);
 
-  // Atualiza os índices de ordem
   items.forEach((item, index) => {
     item.order = index + 1;
   });
 
-  // Atualiza selectedIndex para a nova posição se o item arrastado estava selecionado
   if (selectedIndex.value === oldIndex) {
     selectedIndex.value = insertIndex;
   }
@@ -128,14 +125,11 @@ const clearDragStates = () => {
   isTouchDragging.value = false;
   touchStartY.value = 0;
 
-  // Remove listeners globais
   document.removeEventListener("touchmove", onTouchMove);
   document.removeEventListener("touchend", onTouchEnd);
 };
 
-// Touch events - apenas para item selecionado
 const onTouchStart = (event: TouchEvent, index: number) => {
-  // Se não é o item selecionado, permite comportamento normal (scroll)
   if (selectedIndex.value !== index) {
     return;
   }
@@ -147,31 +141,25 @@ const onTouchStart = (event: TouchEvent, index: number) => {
   let touchMoveHandler: ((e: TouchEvent) => void) | null = null;
   let touchEndHandler: ((e: TouchEvent) => void) | null = null;
 
-  // Handler temporário para detectar movimento
   touchMoveHandler = (moveEvent: TouchEvent) => {
     const moveTouch = moveEvent.touches[0];
     if (Math.abs(moveTouch.clientY - touchStartY.value) > 10) {
-      // Inicia o drag apenas do item selecionado
       draggedIndex.value = index;
       isTouchDragging.value = true;
 
-      // Remove handlers temporários
       document.removeEventListener("touchmove", touchMoveHandler!);
       document.removeEventListener("touchend", touchEndHandler!);
 
-      // Adiciona handlers definitivos
       document.addEventListener("touchmove", onTouchMove, { passive: false });
       document.addEventListener("touchend", onTouchEnd, { once: true });
     }
   };
 
   touchEndHandler = () => {
-    // Remove handlers se não houve drag
     document.removeEventListener("touchmove", touchMoveHandler!);
     document.removeEventListener("touchend", touchEndHandler!);
   };
 
-  // Adiciona handlers temporários
   document.addEventListener("touchmove", touchMoveHandler, { passive: false });
   document.addEventListener("touchend", touchEndHandler, { once: true });
 };
@@ -189,7 +177,6 @@ const onTouchMove = (event: TouchEvent) => {
       const index = parseInt(listItem.getAttribute("data-index") || "0");
       dragOverIndex.value = index;
 
-      // Calcula posição do indicador
       const rect = listItem.getBoundingClientRect();
       const itemMiddle = rect.top + rect.height / 2;
 
@@ -220,23 +207,18 @@ const onTouchEnd = (event: TouchEvent) => {
 
       let insertIndex = dropIndicatorIndex.value;
 
-      // Remove o item da posição original
       items.splice(draggedIndex.value, 1);
 
-      // Ajusta o índice de inserção se necessário
       if (draggedIndex.value < insertIndex) {
         insertIndex--;
       }
 
-      // Insere na nova posição
       items.splice(insertIndex, 0, draggedItem);
 
-      // Atualiza os índices de ordem
       items.forEach((item, index) => {
         item.order = index + 1;
       });
 
-      // Atualiza selectedIndex para a nova posição se o item arrastado estava selecionado
       if (selectedIndex.value === oldIndex) {
         selectedIndex.value = insertIndex;
       }
@@ -253,7 +235,6 @@ const selectItem = (index: number) => {
 };
 
 const onItemClick = (index: number, event: Event) => {
-  // Evita dupla seleção em dispositivos touch
   if (isTouchDragging.value) {
     event.preventDefault();
     return;
@@ -267,7 +248,6 @@ const moveUp = (index: number) => {
   const items = [...props.modelValue];
   [items[index - 1], items[index]] = [items[index], items[index - 1]];
 
-  // Atualiza os índices de ordem
   items.forEach((item, idx) => {
     item.order = idx + 1;
   });
@@ -282,7 +262,6 @@ const moveDown = (index: number) => {
   const items = [...props.modelValue];
   [items[index], items[index + 1]] = [items[index + 1], items[index]];
 
-  // Atualiza os índices de ordem
   items.forEach((item, idx) => {
     item.order = idx + 1;
   });
@@ -306,7 +285,6 @@ const moveSelectedDown = () => {
 
 <template>
   <div class="flex gap-4">
-    <!-- Botões de controle -->
     <div class="flex flex-col gap-2">
       <Button
         icon="pi pi-angle-up"
@@ -330,7 +308,7 @@ const moveSelectedDown = () => {
         rounded
         @click="emit('save')"
         :loading="saving"
-        :disabled="loading || saving"
+        :disabled="loading || saving || hasOrderChanged"
         title="Salvar ordem"
       />
       <Button
@@ -349,7 +327,9 @@ const moveSelectedDown = () => {
     </div>
 
     <!-- Lista -->
-    <div class="flex-1 border border-gray-300 rounded-md overflow-hidden">
+    <div
+      class="flex-1 border border-gray-300 rounded-md overflow-hidden relative"
+    >
       <!-- Header -->
       <div class="bg-gray-50 border-b border-gray-300">
         <div class="grid grid-cols-[100px_80px_1fr_1fr] gap-2 p-3">
@@ -361,9 +341,28 @@ const moveSelectedDown = () => {
       </div>
 
       <!-- Lista -->
-      <div class="max-h-80 overflow-y-auto relative">
+      <div
+        class="absolute w-full h-full flex justify-center items-center bg-primary-100/50 z-10 cursor-not-allowed"
+        v-if="saving"
+      >
+        <ProgressSpinner
+          style="width: 70px; height: 70px"
+          strokeWidth="5"
+          fill="transparent"
+          aria-label="ProgressSpinner"
+        />
+      </div>
+      <div
+        class="max-h-80 overflow-y-auto relative"
+        :class="{ 'overflow-y-hidden': saving }"
+      >
         <div v-if="loading" class="p-8 text-center text-gray-500">
-          Carregando...
+          <ProgressSpinner
+            style="width: 70px; height: 70px"
+            strokeWidth="5"
+            fill="transparent"
+            aria-label="ProgressSpinner"
+          />
         </div>
         <div
           v-else
@@ -411,13 +410,13 @@ const moveSelectedDown = () => {
         v-if="!modelValue.length && !loading"
         class="p-8 text-center text-gray-500"
       >
-        Nenhum ciclo cronológico encontrado
+        Nenhum ciclo cronológico registrado
       </div>
 
       <!-- Instrução para dispositivos touch -->
       <div
-        v-if="modelValue.length"
-        class="p-2 text-xs text-gray-400 text-center md:hidden"
+        v-if="modelValue.length && !loading"
+        class="p-2 text-xs text-gray-400 text-center lg:hidden"
       >
         Toque para selecionar um item, depois arraste para reordenar
       </div>

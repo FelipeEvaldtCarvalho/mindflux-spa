@@ -1,4 +1,4 @@
-import { ref, reactive, toRefs, watch } from "vue";
+import { ref, reactive, toRefs, watch, computed } from "vue";
 import chronologicalCycleService from "../services/chronological-cycle.service";
 import { useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
@@ -6,6 +6,7 @@ import type {
   ChronologicalCycle,
   ChronologicalCycleFormData,
 } from "../services/chronological-cycle.types";
+import { formatDateToAPI } from "@/helpers/date.helper";
 
 const chronologicalCycleState = reactive({
   isLoading: false,
@@ -13,6 +14,18 @@ const chronologicalCycleState = reactive({
   list: [] as ChronologicalCycle[],
 });
 
+const actualListIds = computed(() =>
+  chronologicalCycleState.list.map(({ id }) => id)
+);
+
+const hasOrderChanged = computed(() => {
+  return (
+    savedOrder.value.length === actualListIds.value.length &&
+    savedOrder.value.every((id, index) => id === actualListIds.value[index])
+  );
+});
+
+const savedOrder = ref<number[]>([]);
 const selectedCycle = ref<ChronologicalCycle | undefined>();
 const selectedDate = ref(new Date());
 
@@ -33,9 +46,10 @@ export const useChronologicalCycle = () => {
       const customerId = Number(route.params.id);
       const data = await chronologicalCycleService.getChronologicalCycleByDate(
         customerId,
-        selectedDate.value.toISOString().split("T")[0]
+        formatDateToAPI(selectedDate.value)
       );
       chronologicalCycleState.list = data;
+      savedOrder.value = data.map((cycle) => cycle.id);
     } catch (error) {
       console.error("Error fetching customers data:", error);
       toast.add({
@@ -55,7 +69,7 @@ export const useChronologicalCycle = () => {
       const customerId = Number(route.params.id);
       const payload = {
         customerId,
-        date: selectedDate.value.toISOString().split("T")[0],
+        date: formatDateToAPI(selectedDate.value),
         cycle: chronologicalCycleFormState.cycle,
         fase: chronologicalCycleFormState.fase,
         emotionalScale: chronologicalCycleFormState.emotionalScale,
@@ -71,6 +85,8 @@ export const useChronologicalCycle = () => {
       chronologicalCycleFormState.fase = "";
       chronologicalCycleFormState.emotionalScale = "";
       chronologicalCycleFormState.physicalScale = "";
+
+      savedOrder.value = [...savedOrder.value, data.id];
 
       toast.add({
         severity: "success",
@@ -108,6 +124,7 @@ export const useChronologicalCycle = () => {
         detail: "Ordem dos ciclos salva com sucesso",
         life: 3000,
       });
+      savedOrder.value = cycles.map((cycle) => cycle.id);
     } catch (error) {
       console.error("Erro ao salvar ordem:", error);
       toast.add({
@@ -133,5 +150,6 @@ export const useChronologicalCycle = () => {
     createCycle,
     saveOrder,
     selectedDate,
+    hasOrderChanged,
   };
 };

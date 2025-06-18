@@ -4,6 +4,11 @@
 :root {
   --p-button-primary-color: #fff;
   --p-menu-item-focus-background: var(--p-primary-200) !important;
+
+  --p-progressspinner-color-one: var(--p-primary-500) !important;
+  --p-progressspinner-color-two: var(--p-primary-500) !important;
+  --p-progressspinner-color-three: var(--p-primary-500) !important;
+  --p-progressspinner-color-four: var(--p-primary-500) !important;
 }
 
 * {

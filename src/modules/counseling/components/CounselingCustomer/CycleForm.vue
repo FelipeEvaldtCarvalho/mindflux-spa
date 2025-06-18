@@ -9,7 +9,7 @@ import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
 
-const { fase, cycle, emotionalScale, physicalScale, createCycle } =
+const { fase, cycle, emotionalScale, physicalScale, createCycle, isSaving } =
   useChronologicalCycle();
 
 const addCycle = async () => {
@@ -32,7 +32,8 @@ const isFormValid = () => {
         severity="success"
         rounded
         @click="addCycle"
-        :disabled="!isFormValid()"
+        :loading="isSaving"
+        :disabled="!isFormValid() || isSaving"
         title="Adicionar novo ciclo"
       />
     </div>
@@ -40,17 +41,29 @@ const isFormValid = () => {
     <div class="flex-1 border border-gray-300 rounded-md overflow-hidden">
       <div class="bg-gray-50 border-b border-gray-300">
         <div class="grid grid-cols-[100px_80px_1fr_1fr] gap-2 p-3">
-          <InputText v-model="fase" placeholder="Fase" class="text-sm" />
-          <InputText v-model="cycle" placeholder="Ciclo" class="text-sm" />
+          <InputText
+            v-model="fase"
+            placeholder="Fase"
+            class="text-sm"
+            :disabled="isSaving"
+          />
+          <InputText
+            v-model="cycle"
+            placeholder="Ciclo"
+            class="text-sm"
+            :disabled="isSaving"
+          />
           <InputText
             v-model="emotionalScale"
             placeholder="Escala Emocional"
             class="text-sm"
+            :disabled="isSaving"
           />
           <InputText
             v-model="physicalScale"
             placeholder="Escala Física"
             class="text-sm"
+            :disabled="isSaving"
           />
         </div>
       </div>
