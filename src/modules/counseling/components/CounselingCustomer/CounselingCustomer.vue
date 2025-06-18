@@ -21,7 +21,7 @@ onMounted(getData);
     <h1 v-else class="text-2xl font-bold text-primary-900">
       {{ customer.name }}
     </h1>
-    <Tabs value="0">
+    <Tabs value="0" scrollable class="max-w-full overflow-x-hidden">
       <CounselingCustomerTabs />
       <TabPanels class="!p-0 mt-8">
         <CounselingCustomerInitialInterview />
