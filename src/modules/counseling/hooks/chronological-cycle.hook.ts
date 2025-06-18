@@ -106,6 +106,39 @@ export const useChronologicalCycle = () => {
     }
   };
 
+  const updateCycle = async (cycle: ChronologicalCycle) => {
+    chronologicalCycleState.isSaving = true;
+    try {
+      const customerId = Number(route.params.id);
+      const data = await chronologicalCycleService.updateChronologicalCycle(
+        customerId,
+        cycle
+      );
+      const index = chronologicalCycleState.list.findIndex(
+        (item) => item.id === cycle.id
+      );
+      if (index !== -1) {
+        chronologicalCycleState.list[index] = data;
+      }
+
+      toast.add({
+        severity: "success",
+        summary: "Sucesso",
+        detail: "Ciclo atualizado com sucesso",
+        life: 3000,
+      });
+    } catch {
+      toast.add({
+        severity: "error",
+        summary: "Erro",
+        detail: "Erro ao atualizar ciclo",
+        life: 3000,
+      });
+    } finally {
+      chronologicalCycleState.isSaving = false;
+    }
+  };
+
   const saveOrder = async () => {
     chronologicalCycleState.isSaving = true;
     try {
@@ -178,5 +211,6 @@ export const useChronologicalCycle = () => {
     selectedDate,
     hasOrderChanged,
     deleteCycle,
+    updateCycle,
   };
 };

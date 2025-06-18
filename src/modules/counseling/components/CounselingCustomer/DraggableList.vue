@@ -9,10 +9,11 @@ import { ref, defineProps, defineEmits } from "vue";
 import Button from "primevue/button";
 import ProgressSpinner from "primevue/progressspinner";
 import { useConfirm } from "primevue/useconfirm";
+import EditCycleDialog from "./EditCycleDialog.vue";
 
 import { useChronologicalCycle } from "../../hooks/chronological-cycle.hook";
 
-const { hasOrderChanged } = useChronologicalCycle();
+const { hasOrderChanged, updateCycle } = useChronologicalCycle();
 const confirm = useConfirm();
 
 interface CycleItem {
@@ -46,6 +47,9 @@ const selectedIndex = ref<number | null>(null);
 const dropIndicatorIndex = ref<number | null>(null);
 const isTouchDragging = ref(false);
 const touchStartY = ref(0);
+
+const showEditDialog = ref(false);
+const selectedCycleForEdit = ref<CycleItem | undefined>();
 
 const onDragStart = (event: DragEvent, index: number) => {
   draggedIndex.value = index;
@@ -311,6 +315,17 @@ const confirmDelete = (event: MouseEvent) => {
     reject: () => {},
   });
 };
+
+const onEditClick = () => {
+  if (selectedIndex.value !== null) {
+    selectedCycleForEdit.value = props.modelValue[selectedIndex.value];
+    showEditDialog.value = true;
+  }
+};
+
+const onSaveCycle = (cycle: CycleItem) => {
+  updateCycle(cycle);
+};
 </script>
 
 <template>
@@ -344,7 +359,7 @@ const confirmDelete = (event: MouseEvent) => {
       <Button
         icon="pi pi-pencil"
         rounded
-        @click="emit('edit:selected', modelValue[selectedIndex ?? 0])"
+        @click="onEditClick"
         :disabled="selectedIndex === null"
       />
       <Button
@@ -451,6 +466,12 @@ const confirmDelete = (event: MouseEvent) => {
         Toque para selecionar um item, depois arraste para reordenar
       </div>
     </div>
+
+    <EditCycleDialog
+      v-model:visible="showEditDialog"
+      :cycle="selectedCycleForEdit"
+      @save="onSaveCycle"
+    />
   </div>
 </template>
 
