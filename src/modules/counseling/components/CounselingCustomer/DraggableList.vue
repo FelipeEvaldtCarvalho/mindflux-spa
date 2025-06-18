@@ -8,10 +8,12 @@ export default {
 import { ref, defineProps, defineEmits } from "vue";
 import Button from "primevue/button";
 import ProgressSpinner from "primevue/progressspinner";
+import { useConfirm } from "primevue/useconfirm";
 
 import { useChronologicalCycle } from "../../hooks/chronological-cycle.hook";
 
 const { hasOrderChanged } = useChronologicalCycle();
+const confirm = useConfirm();
 
 interface CycleItem {
   id: number;
@@ -34,8 +36,8 @@ const emit = defineEmits<{
   "update:modelValue": [value: CycleItem[]];
   "save:modelValue": [value: CycleItem[]];
   "edit:selected": [value: CycleItem];
-  "delete:selected": [value: CycleItem];
-  save: void;
+  "delete:selected": [value: number];
+  save: [];
 }>();
 
 const draggedIndex = ref<number | null>(null);
@@ -281,6 +283,34 @@ const moveSelectedDown = () => {
     moveDown(selectedIndex.value);
   }
 };
+
+const confirmDelete = (event: MouseEvent) => {
+  if (selectedIndex.value === null) return;
+
+  confirm.require({
+    target: event.currentTarget as HTMLElement,
+    message: "Tem certeza que deseja excluir este ciclo?",
+    icon: "pi pi-info-circle",
+    rejectProps: {
+      label: "Cancelar",
+      severity: "secondary",
+      outlined: true,
+    },
+    acceptProps: {
+      label: "Excluir",
+      severity: "danger",
+    },
+    accept: () => {
+      if (selectedIndex.value !== null) {
+        console.log("deletando");
+        console.log(props.modelValue[selectedIndex.value].id);
+        const id = props.modelValue[selectedIndex.value].id;
+        emit("delete:selected", id);
+      }
+    },
+    reject: () => {},
+  });
+};
 </script>
 
 <template>
@@ -321,7 +351,7 @@ const moveSelectedDown = () => {
         icon="pi pi-trash"
         rounded
         severity="danger"
-        @click="emit('delete:selected', modelValue[selectedIndex ?? 0])"
+        @click="confirmDelete($event)"
         :disabled="selectedIndex === null"
       />
     </div>

@@ -138,6 +138,32 @@ export const useChronologicalCycle = () => {
     }
   };
 
+  const deleteCycle = async (id: number) => {
+    chronologicalCycleState.isSaving = true;
+    try {
+      await chronologicalCycleService.deleteChronologicalCycle(id);
+      chronologicalCycleState.list = chronologicalCycleState.list.filter(
+        (cycle) => cycle.id !== id
+      );
+      savedOrder.value = savedOrder.value.filter((order) => order !== id);
+      toast.add({
+        severity: "success",
+        summary: "Sucesso",
+        detail: "Ciclo deletado com sucesso",
+        life: 3000,
+      });
+    } catch {
+      toast.add({
+        severity: "error",
+        summary: "Erro",
+        detail: "Erro ao deletar ciclo",
+        life: 3000,
+      });
+    } finally {
+      chronologicalCycleState.isSaving = false;
+    }
+  };
+
   watch(selectedDate, () => {
     getData();
   });
@@ -151,5 +177,6 @@ export const useChronologicalCycle = () => {
     saveOrder,
     selectedDate,
     hasOrderChanged,
+    deleteCycle,
   };
 };
