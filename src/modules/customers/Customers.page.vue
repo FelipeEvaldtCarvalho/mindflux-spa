@@ -10,7 +10,7 @@ import TabPanels from "primevue/tabpanels";
     <h1 class="text-xl font-bold text-primary-900">Clientes:</h1>
     <Tabs value="0">
       <CustomersTabs />
-      <TabPanels>
+      <TabPanels class="!px-0">
         <CustomersList />
         <CustomersForm />
       </TabPanels>

@@ -16,6 +16,10 @@ class CustomersService {
   async createCustomer(payload: CreateCustomer): Promise<any> {
     return await this.apiService.post(this.apiRoute, payload);
   }
+
+  async deleteCustomer(id: string): Promise<void> {
+    await this.apiService.delete(`${this.apiRoute}/${id}`);
+  }
 }
 
 const customersService = new CustomersService(apiService.axios);

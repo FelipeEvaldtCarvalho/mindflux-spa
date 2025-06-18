@@ -7,6 +7,7 @@ import IconField from "primevue/iconfield";
 import InputIcon from "primevue/inputicon";
 import Button from "primevue/button";
 import Menu from "primevue/menu";
+import Dialog from "primevue/dialog";
 import FeedBack from "@/components/FeedBack.vue";
 import { FilterMatchMode } from "@primevue/core/api";
 import { ref, nextTick } from "vue";
@@ -15,7 +16,7 @@ import { useCustomers } from "../hooks/customers.hook";
 import { phoneMask } from "@/helpers/masks.helper";
 
 const router = useRouter();
-const { customers } = useCustomers();
+const { customers, deleteCustomer } = useCustomers();
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -23,6 +24,8 @@ const filters = ref({
 });
 
 const actionMenuRefs = ref<any[]>([]);
+const showDeleteDialog = ref(false);
+const selectedCustomer = ref<any>(null);
 
 const setMenuRef = (el: any, index: number) => {
   if (el) actionMenuRefs.value[index] = el;
@@ -34,6 +37,19 @@ const showMenu = (event: Event, index: number) => {
   });
 };
 
+const confirmDelete = (customer: any) => {
+  selectedCustomer.value = customer;
+  showDeleteDialog.value = true;
+};
+
+const handleDelete = async () => {
+  if (selectedCustomer.value) {
+    await deleteCustomer(selectedCustomer.value.id);
+    showDeleteDialog.value = false;
+    selectedCustomer.value = null;
+  }
+};
+
 const getMenuItems = (customer: any) => [
   {
     label: "Editar",
@@ -43,7 +59,7 @@ const getMenuItems = (customer: any) => [
   {
     label: "Excluir",
     icon: "pi pi-trash",
-    command: () => console.log("excluir"),
+    command: () => confirmDelete(customer),
   },
   {
     label: "Ver Anamnese",
@@ -60,14 +76,15 @@ const getMenuItems = (customer: any) => [
 
 <template>
   <TabPanel value="0">
-    <div class="mb-4 flex justify-end gap-2">
-      <IconField>
+    <div class="mb-4 flex gap-2">
+      <IconField class="w-full md:w-[350px]">
         <InputIcon>
           <i class="pi pi-search" />
         </InputIcon>
         <InputText
           v-model="filters['global'].value"
           placeholder="Buscar por nome..."
+          class="w-full"
         />
       </IconField>
 
@@ -131,5 +148,38 @@ const getMenuItems = (customer: any) => [
       title="Nenhum cliente encontrado!"
       description="Cadastre novos clientes para vê-los aqui."
     />
+
+    <Dialog
+      v-model:visible="showDeleteDialog"
+      modal
+      header="Confirmar Exclusão"
+      :style="{ width: '450px' }"
+    >
+      <div class="flex flex-col gap-4">
+        <p>
+          Tem certeza que deseja excluir o cliente
+          <strong>{{ selectedCustomer?.name }}</strong
+          >?
+        </p>
+        <p class="text-sm text-gray-600">Esta ação não poderá ser desfeita.</p>
+      </div>
+
+      <template #footer>
+        <Button
+          label="Cancelar"
+          icon="pi pi-times"
+          outlined
+          @click="showDeleteDialog = false"
+          class="mr-2"
+        />
+        <Button
+          label="Confirmar"
+          icon="pi pi-check"
+          severity="danger"
+          @click="handleDelete"
+          autofocus
+        />
+      </template>
+    </Dialog>
   </TabPanel>
 </template>

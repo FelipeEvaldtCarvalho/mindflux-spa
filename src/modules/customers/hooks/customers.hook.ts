@@ -47,6 +47,29 @@ export const useCustomers = () => {
     }
   };
 
+  const deleteCustomer = async (id: string) => {
+    try {
+      state.isLoading = true;
+      await customersService.deleteCustomer(id);
+      toast.add({
+        severity: "success",
+        summary: "Sucesso!",
+        detail: "Cliente excluído com sucesso.",
+        life: 3000,
+      });
+      await getData();
+    } catch (error) {
+      toast.add({
+        severity: "error",
+        summary: "Erro!",
+        detail: "Houve um erro ao excluir o cliente.",
+        life: 3000,
+      });
+    } finally {
+      state.isLoading = false;
+    }
+  };
+
   if (!initialized.value) {
     getData();
     initialized.value = true;
@@ -55,5 +78,6 @@ export const useCustomers = () => {
   return {
     ...toRefs(state),
     createCustomer,
+    deleteCustomer,
   };
 };
