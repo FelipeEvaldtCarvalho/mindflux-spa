@@ -47,6 +47,29 @@ export const useCustomers = () => {
     }
   };
 
+  const updateCustomer = async (id: string, payload: CreateCustomer) => {
+    try {
+      state.isLoading = true;
+      await customersService.updateCustomer(id, payload);
+      toast.add({
+        severity: "success",
+        summary: "Sucesso!",
+        detail: "Cliente atualizado com sucesso.",
+        life: 3000,
+      });
+      await getData();
+    } catch (error) {
+      toast.add({
+        severity: "error",
+        summary: "Erro!",
+        detail: "Houve um erro ao atualizar o cliente.",
+        life: 3000,
+      });
+    } finally {
+      state.isLoading = false;
+    }
+  };
+
   const deleteCustomer = async (id: string) => {
     try {
       state.isLoading = true;
@@ -78,6 +101,7 @@ export const useCustomers = () => {
   return {
     ...toRefs(state),
     createCustomer,
+    updateCustomer,
     deleteCustomer,
   };
 };

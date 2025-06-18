@@ -17,6 +17,10 @@ class CustomersService {
     return await this.apiService.post(this.apiRoute, payload);
   }
 
+  async updateCustomer(id: string, payload: CreateCustomer): Promise<void> {
+    await this.apiService.put(`${this.apiRoute}/${id}`, payload);
+  }
+
   async deleteCustomer(id: string): Promise<void> {
     await this.apiService.delete(`${this.apiRoute}/${id}`);
   }

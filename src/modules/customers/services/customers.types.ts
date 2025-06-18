@@ -1,12 +1,12 @@
-type Customer = {
-  id: number;
+export type Customer = {
+  id: string;
   name: string;
-  document: string | null;
-  birthdate: string | null;
-  address: string | null;
-  phone: string | null;
+  document?: string;
+  birthdate?: string;
+  address?: string;
+  phone: string;
 };
 
 export type Customers = Customer[];
 
-export type CreateCustomer = Partial<Customer>;
+export type CreateCustomer = Omit<Customer, "id">;

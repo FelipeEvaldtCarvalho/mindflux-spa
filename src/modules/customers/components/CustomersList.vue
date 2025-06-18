@@ -14,9 +14,11 @@ import { ref, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useCustomers } from "../hooks/customers.hook";
 import { phoneMask } from "@/helpers/masks.helper";
+import type { Customer } from "../services/customers.types";
+import EditCustomerDialog from "./EditCustomerDialog.vue";
 
 const router = useRouter();
-const { customers, deleteCustomer } = useCustomers();
+const { customers, deleteCustomer, updateCustomer } = useCustomers();
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -25,7 +27,8 @@ const filters = ref({
 
 const actionMenuRefs = ref<any[]>([]);
 const showDeleteDialog = ref(false);
-const selectedCustomer = ref<any>(null);
+const showEditDialog = ref(false);
+const selectedCustomer = ref<Customer | null>(null);
 
 const setMenuRef = (el: any, index: number) => {
   if (el) actionMenuRefs.value[index] = el;
@@ -37,7 +40,7 @@ const showMenu = (event: Event, index: number) => {
   });
 };
 
-const confirmDelete = (customer: any) => {
+const confirmDelete = (customer: Customer) => {
   selectedCustomer.value = customer;
   showDeleteDialog.value = true;
 };
@@ -50,11 +53,22 @@ const handleDelete = async () => {
   }
 };
 
-const getMenuItems = (customer: any) => [
+const openEditDialog = (customer: Customer) => {
+  selectedCustomer.value = customer;
+  showEditDialog.value = true;
+};
+
+const handleEdit = async (id: string, data: any) => {
+  await updateCustomer(id, data);
+  showEditDialog.value = false;
+  selectedCustomer.value = null;
+};
+
+const getMenuItems = (customer: Customer) => [
   {
     label: "Editar",
     icon: "pi pi-pencil",
-    command: () => console.log("editar"),
+    command: () => openEditDialog(customer),
   },
   {
     label: "Excluir",
@@ -64,6 +78,7 @@ const getMenuItems = (customer: any) => [
   {
     label: "Ver Anamnese",
     icon: "pi pi-file",
+    disabled: true,
     command: () => console.log("anamnese"),
   },
   {
@@ -181,5 +196,11 @@ const getMenuItems = (customer: any) => [
         />
       </template>
     </Dialog>
+
+    <EditCustomerDialog
+      v-model:visible="showEditDialog"
+      :customer="selectedCustomer"
+      @save="handleEdit"
+    />
   </TabPanel>
 </template>
