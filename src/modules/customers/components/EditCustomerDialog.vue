@@ -10,7 +10,7 @@ import { z } from "zod";
 import { toTypedSchema } from "@vee-validate/zod";
 import type { Customer, CreateCustomer } from "../services/customers.types";
 import { watch } from "vue";
-import { formatDateToAPI } from "@/helpers/date.helper";
+import { formatDateToAPI } from "../../../helpers/date.helper";
 
 const props = defineProps<{
   visible: boolean;
@@ -182,3 +182,9 @@ watch(
     </div>
   </Dialog>
 </template>
+
+<script lang="ts">
+export default {
+  name: "EditCustomerDialog",
+};
+</script>
