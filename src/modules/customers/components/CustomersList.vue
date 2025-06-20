@@ -16,9 +16,17 @@ import { useCustomers } from "../hooks/customers.hook";
 import { phoneMask } from "@/helpers/masks.helper";
 import type { Customer } from "../services/customers.types";
 import EditCustomerDialog from "./EditCustomerDialog.vue";
+import ProgressSpinner from "primevue/progressspinner";
 
 const router = useRouter();
-const { customers, deleteCustomer, updateCustomer } = useCustomers();
+const {
+  customers,
+  deleteCustomer,
+  updateCustomer,
+  isLoading,
+  hasError,
+  getData,
+} = useCustomers();
 
 const filters = ref({
   global: { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -100,6 +108,7 @@ const getMenuItems = (customer: Customer) => [
           v-model="filters['global'].value"
           placeholder="Buscar por nome..."
           class="w-full"
+          :disabled="isLoading"
         />
       </IconField>
 
@@ -115,11 +124,10 @@ const getMenuItems = (customer: Customer) => [
     </div>
 
     <DataTable
-      v-if="customers.length"
       v-model:filters="filters"
       :value="customers"
       :globalFilterFields="['name']"
-      paginator
+      :paginator="customers.length"
       :rows="10"
       size="small"
     >
@@ -155,14 +163,35 @@ const getMenuItems = (customer: Customer) => [
           />
         </template>
       </Column>
+      <template #empty>
+        <FeedBack
+          v-if="!isLoading && !hasError"
+          icon="folder_open"
+          title="Nenhum cliente encontrado!"
+          description="Use um novo filtro ou cadastre um novo cliente para vê-lo aqui."
+        />
+        <div
+          class="flex justify-center items-center h-full my-32"
+          v-if="isLoading"
+        >
+          <ProgressSpinner
+            style="width: 70px; height: 70px"
+            strokeWidth="5"
+            fill="transparent"
+            aria-label="ProgressSpinner"
+          />
+        </div>
+        <FeedBack
+          v-if="hasError"
+          icon="warning"
+          title="Erro ao carregar clientes!"
+          description="Tente novamente mais tarde."
+          :action="getData"
+          actionText="Tentar novamente"
+          actionIcon="pi pi-refresh"
+        />
+      </template>
     </DataTable>
-
-    <FeedBack
-      v-else
-      icon="folder_open"
-      title="Nenhum cliente encontrado!"
-      description="Cadastre novos clientes para vê-los aqui."
-    />
 
     <Dialog
       v-model:visible="showDeleteDialog"

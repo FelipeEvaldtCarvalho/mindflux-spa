@@ -5,11 +5,12 @@ import Button from "primevue/button";
 import DatePicker from "primevue/datepicker";
 import FloatLabel from "primevue/floatlabel";
 import InputMask from "primevue/inputmask";
-import { useForm } from "vee-validate";
+import { useForm, useField } from "vee-validate";
 import { z } from "zod";
 import { toTypedSchema } from "@vee-validate/zod";
 import type { Customer, CreateCustomer } from "../services/customers.types";
 import { watch } from "vue";
+import { formatDateToAPI } from "@/helpers/date.helper";
 
 const props = defineProps<{
   visible: boolean;
@@ -33,9 +34,19 @@ const schema = toTypedSchema(
   })
 );
 
-const { handleSubmit, setValues, values, errors } = useForm({
+const { handleSubmit } = useForm({
   validationSchema: schema,
 });
+
+const { value: name, errorMessage: nameError } = useField<string>("name");
+const { value: document, errorMessage: documentError } =
+  useField<string>("document");
+const { value: birthdate, errorMessage: birthdateError } = useField<
+  Date | undefined
+>("birthdate");
+const { value: address, errorMessage: addressError } =
+  useField<string>("address");
+const { value: phone, errorMessage: phoneError } = useField<string>("phone");
 
 const handleEdit = handleSubmit(async (values) => {
   if (props.customer && values.name && values.phone) {
@@ -45,7 +56,7 @@ const handleEdit = handleSubmit(async (values) => {
       document: values.document,
       address: values.address,
       birthdate: values.birthdate
-        ? values.birthdate.toISOString().split("T")[0]
+        ? formatDateToAPI(values.birthdate)
         : undefined,
     };
     emit("save", props.customer.id, payload);
@@ -56,15 +67,13 @@ watch(
   () => props.customer,
   (newCustomer: Customer | null) => {
     if (newCustomer) {
-      setValues({
-        name: newCustomer.name,
-        document: newCustomer.document || "",
-        birthdate: newCustomer.birthdate
-          ? new Date(newCustomer.birthdate)
-          : undefined,
-        address: newCustomer.address || "",
-        phone: newCustomer.phone,
-      });
+      name.value = newCustomer.name;
+      document.value = newCustomer.document || "";
+      birthdate.value = newCustomer.birthdate
+        ? new Date(newCustomer.birthdate)
+        : undefined;
+      address.value = newCustomer.address || "";
+      phone.value = newCustomer.phone;
     }
   },
   { immediate: true }
@@ -84,30 +93,30 @@ watch(
         <div class="grid gap-2 w-full mt-8">
           <FloatLabel>
             <InputText
-              v-model="values.name"
+              v-model="name"
               id="name"
               autocomplete="off"
-              :invalid="!!errors.name"
+              :invalid="!!nameError"
               fluid
             />
             <label for="name">Nome</label>
           </FloatLabel>
-          <div class="text-red-500 text-sm text-left">{{ errors.name }}</div>
+          <div class="text-red-500 text-sm text-left">{{ nameError }}</div>
         </div>
 
         <div class="grid gap-2 w-full mt-8">
           <FloatLabel>
             <InputMask
               id="document"
-              v-model="values.document"
+              v-model="document"
               mask="999.999.99-99"
-              :invalid="!!errors.document"
+              :invalid="!!documentError"
               fluid
             />
             <label for="document">Documento</label>
           </FloatLabel>
           <div class="text-red-500 text-sm text-left">
-            {{ errors.document }}
+            {{ documentError }}
           </div>
         </div>
 
@@ -115,47 +124,47 @@ watch(
           <FloatLabel>
             <DatePicker
               id="birthdate"
-              v-model="values.birthdate"
+              v-model="birthdate"
               showIcon
               fluid
               iconDisplay="input"
-              :invalid="!!errors.birthdate"
+              :invalid="!!birthdateError"
             />
             <label for="birthdate">Data de nascimento</label>
           </FloatLabel>
           <div class="text-red-500 text-sm text-left">
-            {{ errors.birthdate }}
+            {{ birthdateError }}
           </div>
         </div>
 
         <div class="grid gap-2 w-full mt-8">
           <FloatLabel>
             <InputText
-              v-model="values.address"
+              v-model="address"
               id="address"
               autocomplete="off"
-              :invalid="!!errors.address"
+              :invalid="!!addressError"
               fluid
             />
             <label for="address">Endereço</label>
           </FloatLabel>
-          <div class="text-red-500 text-sm text-left">{{ errors.address }}</div>
+          <div class="text-red-500 text-sm text-left">{{ addressError }}</div>
         </div>
 
         <div class="grid gap-2 w-full mt-8">
           <FloatLabel>
             <InputMask
               id="phone"
-              v-model="values.phone"
+              v-model="phone"
               mask="(99) 999.999.999"
-              :invalid="!!errors.phone"
+              :invalid="!!phoneError"
               fluid
               unmask
               :autoClear="false"
             />
             <label for="phone">Telefone</label>
           </FloatLabel>
-          <div class="text-red-500 text-sm text-left">{{ errors.phone }}</div>
+          <div class="text-red-500 text-sm text-left">{{ phoneError }}</div>
         </div>
 
         <div class="flex justify-end gap-2 mt-4">

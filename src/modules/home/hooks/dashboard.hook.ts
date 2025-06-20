@@ -6,14 +6,19 @@ const initialized = ref(false);
 
 const state = reactive({
   isLoading: true,
+  hasError: false,
   dashboardData: null as null | DashboardInfo,
 });
+
 const getData = async () => {
   try {
+    state.isLoading = true;
+    state.hasError = false;
     state.dashboardData = await dashboardService.getData();
-  } catch (error) {
-    console.error("Error fetching dashboard data:", error);
+  } catch {
+    state.hasError = true;
   } finally {
+    state.isLoading = false;
   }
 };
 
@@ -23,5 +28,6 @@ export const useDashboard = () => {
   }
   return {
     ...toRefs(state),
+    getData,
   };
 };

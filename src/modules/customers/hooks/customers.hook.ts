@@ -7,15 +7,18 @@ const initialized = ref(false);
 
 const state = reactive({
   isLoading: true,
+  hasError: false,
   customers: [] as Customers,
 });
 
 const getData = async () => {
   try {
     state.isLoading = true;
+    state.hasError = false;
     state.customers = await customersService.getData();
-  } catch (error) {
-    console.error("Error fetching customers data:", error);
+  } catch {
+    state.customers = [];
+    state.hasError = true;
   } finally {
     state.isLoading = false;
   }
@@ -103,5 +106,6 @@ export const useCustomers = () => {
     createCustomer,
     updateCustomer,
     deleteCustomer,
+    getData,
   };
 };
