@@ -8,15 +8,15 @@ import InputIcon from "primevue/inputicon";
 import Button from "primevue/button";
 import Menu from "primevue/menu";
 import Dialog from "primevue/dialog";
-import FeedBack from "@/components/FeedBack.vue";
+import FeedBack from "../../../components/FeedBack.vue";
+import ProgressSpinner from "primevue/progressspinner";
 import { FilterMatchMode } from "@primevue/core/api";
 import { ref, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useCustomers } from "../hooks/customers.hook";
-import { phoneMask } from "@/helpers/masks.helper";
+import { phoneMask } from "../../../helpers/masks.helper";
 import type { Customer } from "../services/customers.types";
 import EditCustomerDialog from "./EditCustomerDialog.vue";
-import ProgressSpinner from "primevue/progressspinner";
 
 const router = useRouter();
 const {
@@ -127,7 +127,7 @@ const getMenuItems = (customer: Customer) => [
       v-model:filters="filters"
       :value="customers"
       :globalFilterFields="['name']"
-      :paginator="customers.length"
+      :paginator="customers.length > 0"
       :rows="10"
       size="small"
     >
