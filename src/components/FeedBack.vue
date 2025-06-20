@@ -4,10 +4,14 @@ export default {
 };
 </script>
 <script setup lang="ts">
+import Button from "primevue/button";
 defineProps<{
   title?: string;
   icon?: string;
   description?: string;
+  action?: () => void;
+  actionText?: string;
+  actionIcon?: string;
 }>();
 </script>
 
@@ -27,6 +31,12 @@ defineProps<{
     <p v-if="description" class="text-sm text-gray-600">
       {{ description }}
     </p>
+    <Button
+      v-if="action"
+      @click="action"
+      :label="actionText"
+      :icon="actionIcon"
+    />
     <slot />
   </div>
 </template>
