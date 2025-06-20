@@ -28,11 +28,12 @@ const schema = toTypedSchema(
 
 const { handleSubmit, meta } = useForm({ validationSchema: schema });
 
-const { value: name, errorMessage: nameError } = useField("name");
-const { value: email, errorMessage: emailError } = useField("email");
-const { value: password, errorMessage: passwordError } = useField("password");
+const { value: name, errorMessage: nameError } = useField<string>("name");
+const { value: email, errorMessage: emailError } = useField<string>("email");
+const { value: password, errorMessage: passwordError } =
+  useField<string>("password");
 const { value: passwordConfirmation, errorMessage: passwordConfirmationError } =
-  useField("passwordConfirmation");
+  useField<string>("passwordConfirmation");
 
 const createUser = handleSubmit((values) => {
   const payload = {

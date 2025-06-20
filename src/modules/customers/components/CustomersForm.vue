@@ -9,6 +9,7 @@ import DatePicker from "primevue/datepicker";
 import FloatLabel from "primevue/floatlabel";
 import InputMask from "primevue/inputmask";
 import { useCustomers } from "../hooks/customers.hook";
+import type { CreateCustomer } from "../services/customers.types";
 
 const { createCustomer } = useCustomers();
 
@@ -24,18 +25,24 @@ const schema = toTypedSchema(
   })
 );
 
-const { handleSubmit, resetForm, meta } = useForm({ validationSchema: schema });
+const { handleSubmit, resetForm } = useForm({ validationSchema: schema });
 
-const { value: name, errorMessage: nameError } = useField("name");
-const { value: document, errorMessage: documentError } = useField("document");
-const { value: birthdate, errorMessage: birthdateError } =
-  useField("birthdate");
-const { value: address, errorMessage: addressError } = useField("address");
-const { value: phone, errorMessage: phoneError } = useField("phone");
+const { value: name, errorMessage: nameError } = useField<string>("name");
+const { value: document, errorMessage: documentError } =
+  useField<string>("document");
+const { value: birthdate, errorMessage: birthdateError } = useField<
+  Date | undefined
+>("birthdate");
+const { value: address, errorMessage: addressError } =
+  useField<string>("address");
+const { value: phone, errorMessage: phoneError } = useField<string>("phone");
 
 const createUser = handleSubmit(async (values) => {
-  const payload = {
-    ...values,
+  const payload: CreateCustomer = {
+    name: values.name,
+    phone: values.phone,
+    document: values.document,
+    address: values.address,
     birthdate: values.birthdate
       ? values.birthdate.toISOString().split("T")[0]
       : undefined,

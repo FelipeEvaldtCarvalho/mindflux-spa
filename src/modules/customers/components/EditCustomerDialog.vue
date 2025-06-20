@@ -33,7 +33,7 @@ const schema = toTypedSchema(
   })
 );
 
-const { handleSubmit, resetForm, setValues, values, errors } = useForm({
+const { handleSubmit, setValues, values, errors } = useForm({
   validationSchema: schema,
 });
 
