@@ -11,7 +11,6 @@ const state = reactive({
   customers: [] as Customers,
 });
 
-// simular um delay de 7 segundos
 const getData = async () => {
   try {
     state.isLoading = true;
