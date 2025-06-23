@@ -17,6 +17,7 @@ import { useCustomers } from "../hooks/customers.hook";
 import { phoneMask } from "../../../helpers/masks.helper";
 import type { Customer } from "../services/customers.types";
 import EditCustomerDialog from "./EditCustomerDialog.vue";
+import ViewCustomerDialog from "./ViewCustomerDialog.vue";
 
 const router = useRouter();
 const {
@@ -36,6 +37,7 @@ const filters = ref({
 const actionMenuRefs = ref<any[]>([]);
 const showDeleteDialog = ref(false);
 const showEditDialog = ref(false);
+const showViewDialog = ref(false);
 const selectedCustomer = ref<Customer | null>(null);
 
 const setMenuRef = (el: any, index: number) => {
@@ -70,6 +72,11 @@ const handleEdit = async (id: string, data: any) => {
   await updateCustomer(id, data);
   showEditDialog.value = false;
   selectedCustomer.value = null;
+};
+
+const openViewDialog = (customer: Customer) => {
+  selectedCustomer.value = customer;
+  showViewDialog.value = true;
 };
 
 const getMenuItems = (customer: Customer) => [
@@ -130,6 +137,9 @@ const getMenuItems = (customer: Customer) => [
       :paginator="customers.length > 0"
       :rows="10"
       size="small"
+      selectionMode="single"
+      @rowClick="(event) => openViewDialog(event.data)"
+      class="cursor-pointer"
     >
       <Column field="name" header="Nome">
         <template #filter="{ filterModel, filterCallback }">
@@ -230,6 +240,11 @@ const getMenuItems = (customer: Customer) => [
       v-model:visible="showEditDialog"
       :customer="selectedCustomer"
       @save="handleEdit"
+    />
+
+    <ViewCustomerDialog
+      v-model:visible="showViewDialog"
+      :customer="selectedCustomer"
     />
   </TabPanel>
 </template>

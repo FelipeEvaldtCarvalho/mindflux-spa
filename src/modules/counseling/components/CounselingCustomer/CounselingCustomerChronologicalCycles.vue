@@ -40,6 +40,7 @@ onMounted(getData);
           :showButtonBar="false"
           v-model="selectedDate"
           :disabled="isLoading"
+          :maxDate="new Date()"
         />
       </div>
       <DraggableList
