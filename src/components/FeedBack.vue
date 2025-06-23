@@ -25,10 +25,10 @@ defineProps<{
         {{ icon }}
       </span>
     </div>
-    <p v-if="title" class="text-xlg font-semibold">
+    <p v-if="title" class="text-xlg font-semibold text-center">
       {{ title }}
     </p>
-    <p v-if="description" class="text-sm text-gray-600">
+    <p v-if="description" class="text-sm text-gray-600 text-center">
       {{ description }}
     </p>
     <Button

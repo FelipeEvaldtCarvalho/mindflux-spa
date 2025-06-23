@@ -50,6 +50,11 @@ const items = ref([
         icon: "groups",
         to: "/customers",
       },
+      {
+        label: "Agendamentos",
+        icon: "calendar_month",
+        to: "/appointments",
+      },
       // {
       //   label: "Atendimentos",
       //   icon: "psychology",
