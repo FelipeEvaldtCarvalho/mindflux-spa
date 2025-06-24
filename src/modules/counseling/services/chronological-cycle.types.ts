@@ -34,3 +34,13 @@ export interface ChronologicalCycleFormData {
   emotionalScale: string;
   physicalScale: string;
 }
+
+export interface ChronologicalCycleList {
+  [key: string]: {
+    id: number;
+    cycle: string;
+    fase: string;
+    emotionalScale: string;
+    physicalScale: string;
+  }[];
+}

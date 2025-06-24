@@ -4,6 +4,7 @@ import type {
   ChronologicalCycle,
   CreateChronologicalCyclePayload,
   UpdateOrderPayload,
+  ChronologicalCycleList,
 } from "./chronological-cycle.types";
 
 class ChronologicalCycleService {
@@ -18,6 +19,15 @@ class ChronologicalCycleService {
   ): Promise<ChronologicalCycle[]> {
     const { data } = await this.apiService.get<ChronologicalCycle[]>(
       `${this.apiRoute}customer/${customerId}/date/${date}`
+    );
+    return data;
+  }
+
+  async getChronologicalCycleList(
+    customerId: number
+  ): Promise<ChronologicalCycleList> {
+    const { data } = await this.apiService.get<ChronologicalCycleList>(
+      `${this.apiRoute}customer/${customerId}`
     );
     return data;
   }
