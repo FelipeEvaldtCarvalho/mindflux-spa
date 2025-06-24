@@ -1,8 +1,11 @@
+import dayjs from "dayjs";
+
 export const formatDateToAPI = (date: Date): string => {
   if (!date) return "";
-  let dateFormatted = new Date(date);
-  const year = dateFormatted.getFullYear();
-  const month = String(dateFormatted.getMonth() + 1).padStart(2, "0");
-  const day = String(dateFormatted.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return dayjs(date).format("YYYY-MM-DD");
+};
+
+export const formatDateToDisplay = (date: string): string => {
+  if (!date) return "";
+  return dayjs(date).format("DD/MM/YYYY");
 };

@@ -10,6 +10,7 @@ import Tab from "primevue/tab";
 <template>
   <TabList>
     <Tab value="0">Entrevista Inicial</Tab>
-    <Tab value="1">Ciclos Cronológicos</Tab>
+    <Tab value="1">Ciclo Cronológico</Tab>
+    <Tab value="2">Ver Ciclos</Tab>
   </TabList>
 </template>

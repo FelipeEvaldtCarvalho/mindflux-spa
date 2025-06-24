@@ -14,6 +14,11 @@ const chronologicalCycleState = reactive({
   list: [] as ChronologicalCycle[],
 });
 
+const chronologicalCycleListState = reactive({
+  isLoading: false,
+  viewList: {} as ChronologicalCycleList,
+});
+
 const actualListIds = computed(() =>
   chronologicalCycleState.list.map(({ id }) => id)
 );
@@ -197,13 +202,28 @@ export const useChronologicalCycle = () => {
     }
   };
 
+  const getList = async () => {
+    try {
+      chronologicalCycleListState.isLoading = true;
+      const customerId = Number(route.params.id);
+      const data = await chronologicalCycleService.getChronologicalCycleList(
+        customerId
+      );
+      chronologicalCycleListState.viewList = data;
+    } catch (error) {
+      console.error("Error fetching customers data:", error);
+    } finally {
+      chronologicalCycleListState.isLoading = false;
+    }
+  };
+
   watch(selectedDate, () => {
     getData();
   });
-
   return {
     ...toRefs(chronologicalCycleState),
     ...toRefs(chronologicalCycleFormState),
+    ...toRefs(chronologicalCycleListState),
     selectedCycle,
     getData,
     createCycle,
@@ -212,5 +232,6 @@ export const useChronologicalCycle = () => {
     hasOrderChanged,
     deleteCycle,
     updateCycle,
+    getList,
   };
 };

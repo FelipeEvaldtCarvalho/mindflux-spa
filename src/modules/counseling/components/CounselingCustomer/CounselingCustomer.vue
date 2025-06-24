@@ -10,6 +10,7 @@ import CounselingCustomerInitialInterview from "./CounselingCustomerInitialInter
 import CounselingCustomerChronologicalCycles from "./CounselingCustomerChronologicalCycles.vue";
 import TabPanels from "primevue/tabpanels";
 import { useCounseling } from "@/modules/counseling/hooks/counseling.hook";
+import ChronologicalCyclesList from "./ChronologicalCyclesList.vue";
 import Skeleton from "primevue/skeleton";
 import { onMounted } from "vue";
 const { loading, customer, getData } = useCounseling();
@@ -26,6 +27,7 @@ onMounted(getData);
       <TabPanels class="!p-0 mt-8">
         <CounselingCustomerInitialInterview />
         <CounselingCustomerChronologicalCycles />
+        <ChronologicalCyclesList />
       </TabPanels>
     </Tabs>
   </section>
