@@ -5,11 +5,19 @@ export default {
 </script>
 <script setup lang="ts">
 import TabPanel from "primevue/tabpanel";
-import { formatDateToDisplay } from "@/helpers/date.helper";
-import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
 import { onMounted } from "vue";
+import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
+import { formatDateToDisplay } from "@/helpers/date.helper";
 
 const { getList, viewList } = useChronologicalCycle();
+
+//renomear essa funçao
+const getDate = (key: string | number) => {
+  if (typeof key === "string") {
+    return key;
+  }
+  return key.toString();
+};
 
 onMounted(getList);
 </script>
@@ -22,7 +30,7 @@ onMounted(getList);
     >
       <span
         class="text-sm font-bold text-primary-900 w-full bg-primary-100 p-3 rounded-md"
-        >{{ formatDateToDisplay(key) }}</span
+        >{{ formatDateToDisplay(getDate(key)) }}</span
       >
       <ul>
         <li
