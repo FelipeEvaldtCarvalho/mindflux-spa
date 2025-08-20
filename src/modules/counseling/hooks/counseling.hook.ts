@@ -20,11 +20,16 @@ const customerCounselingState = reactive<CounselingData>({
 
 export const useCounseling = () => {
   const route = useRoute();
-  const customerId = Number(route.params.id);
 
   const getData = async () => {
     loading.value = true;
     try {
+      const customerId = Number(route.params.id);
+
+      if (!customerId || isNaN(customerId)) {
+        throw new Error("ID do customer inválido");
+      }
+
       const data = await counselingService.getCustomerCounseling(customerId);
       Object.assign(customerCounselingState, data);
     } catch (error) {
@@ -37,6 +42,12 @@ export const useCounseling = () => {
   const updateData = async () => {
     loading.value = true;
     try {
+      const customerId = Number(route.params.id);
+
+      if (!customerId || isNaN(customerId)) {
+        throw new Error("ID do customer inválido");
+      }
+
       const payload = {
         dailyLife: customerCounselingState.dailyLife,
         expectations: customerCounselingState.expectations,
