@@ -50,6 +50,11 @@ export const useChronologicalCycle = () => {
     chronologicalCycleState.isLoading = true;
     try {
       const customerId = Number(route.params.id);
+
+      if (!customerId || isNaN(customerId)) {
+        throw new Error("ID do customer inválido");
+      }
+
       const data = await chronologicalCycleService.getChronologicalCycleByDate(
         customerId,
         formatDateToAPI(selectedDate.value)
@@ -73,6 +78,11 @@ export const useChronologicalCycle = () => {
     chronologicalCycleState.isSaving = true;
     try {
       const customerId = Number(route.params.id);
+
+      if (!customerId || isNaN(customerId)) {
+        throw new Error("ID do customer inválido");
+      }
+
       const payload = {
         customerId,
         date: formatDateToAPI(selectedDate.value),
@@ -115,9 +125,8 @@ export const useChronologicalCycle = () => {
   const updateCycle = async (cycle: ChronologicalCycle) => {
     chronologicalCycleState.isSaving = true;
     try {
-      const customerId = Number(route.params.id);
       const data = await chronologicalCycleService.updateChronologicalCycle(
-        customerId,
+        cycle.id,
         cycle
       );
       const index = chronologicalCycleState.list.findIndex(
@@ -207,6 +216,11 @@ export const useChronologicalCycle = () => {
     try {
       chronologicalCycleListState.isLoading = true;
       const customerId = Number(route.params.id);
+
+      if (!customerId || isNaN(customerId)) {
+        throw new Error("ID do customer inválido");
+      }
+
       const data = await chronologicalCycleService.getChronologicalCycleList(
         customerId
       );
@@ -218,9 +232,33 @@ export const useChronologicalCycle = () => {
     }
   };
 
+  const resetState = () => {
+    chronologicalCycleState.isLoading = false;
+    chronologicalCycleState.isSaving = false;
+    chronologicalCycleState.list = [];
+    chronologicalCycleListState.isLoading = false;
+    chronologicalCycleListState.viewList = {};
+    savedOrder.value = [];
+    selectedCycle.value = undefined;
+    chronologicalCycleFormState.cycle = "";
+    chronologicalCycleFormState.fase = "";
+    chronologicalCycleFormState.emotionalScale = "";
+    chronologicalCycleFormState.physicalScale = "";
+  };
+
   watch(selectedDate, () => {
     getData();
   });
+
+  watch(
+    () => route.params.id,
+    () => {
+      resetState();
+      getData();
+    },
+    { immediate: true }
+  );
+
   return {
     ...toRefs(chronologicalCycleState),
     ...toRefs(chronologicalCycleFormState),
@@ -234,5 +272,6 @@ export const useChronologicalCycle = () => {
     deleteCycle,
     updateCycle,
     getList,
+    resetState,
   };
 };
