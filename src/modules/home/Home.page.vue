@@ -23,7 +23,7 @@ onMounted(getData);
   <section class="grid gap-6 p-6 lg:p-8">
     <header>
       <h1 class="page-title">{{ greeting }}</h1>
-      <p class="text-surface-600 capitalize">{{ formatLongDate(new Date()) }}</p>
+      <p class="text-surface-600 first-letter:uppercase">{{ formatLongDate(new Date()) }}</p>
     </header>
 
     <div v-if="hasError" class="flex items-center gap-4 p-4 rounded-xl bg-red-50 text-red-800">
@@ -31,8 +31,8 @@ onMounted(getData);
       <Button label="Tentar novamente" icon="pi pi-refresh" size="small" @click="getData" />
     </div>
 
-    <div class="grid md:grid-cols-[1fr_2fr] gap-6 items-start">
-      <Card class="!bg-primary-100 !shadow-none">
+    <div class="grid md:grid-cols-[1fr_2fr] gap-6">
+      <Card class="!bg-primary-100 !shadow-none h-full">
         <template #content>
           <p class="text-primary-900 font-medium">Clientes cadastrados</p>
           <Skeleton v-if="isLoading" width="80px" height="48px" class="mt-2" />
@@ -45,7 +45,7 @@ onMounted(getData);
         </template>
       </Card>
 
-      <Card class="!shadow-none border border-surface-200">
+      <Card class="!shadow-none border border-surface-200 h-full">
         <template #content>
           <div class="flex items-center justify-between gap-4 mb-3">
             <h2 class="section-title">Agenda de hoje</h2>

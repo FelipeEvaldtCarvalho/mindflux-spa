@@ -21,7 +21,7 @@ onMounted(() => {
     <div class="grid md:grid-cols-[minmax(0,22rem)_1fr] gap-8 items-start">
       <Calendar />
       <div class="grid gap-6">
-        <h2 class="section-title capitalize">{{ formatLongDate(calendar) }}</h2>
+        <h2 class="section-title first-letter:uppercase">{{ formatLongDate(calendar) }}</h2>
         <List />
         <AddForm />
       </div>

@@ -121,13 +121,13 @@ const isActive = (to: string) =>
       </li>
     </ul>
 
-    <div class="grid gap-2 p-3 border-t border-surface-200">
+    <div class="grid grid-cols-1 gap-2 p-3 border-t border-surface-200 min-w-0">
       <div
-        class="flex items-center gap-3 p-2"
+        class="flex items-center gap-3 p-2 min-w-0"
         :class="{ 'justify-center': isCollapsed }"
       >
         <Avatar icon="pi pi-user" shape="circle" class="shrink-0" />
-        <div v-if="!isCollapsed" class="min-w-0">
+        <div v-if="!isCollapsed" class="flex-1 min-w-0" :title="user?.email">
           <p class="font-semibold truncate">{{ user?.name || "Meu perfil" }}</p>
           <p class="text-sm text-surface-500 truncate">{{ user?.email }}</p>
         </div>
