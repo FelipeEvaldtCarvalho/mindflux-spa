@@ -6,7 +6,13 @@ import { setupAuthGuard } from "./auth.guard";
 
 const router: Router = createRouter({
   history: createWebHistory(),
-  routes: [mainRoute, authRoute],
+  routes: [
+    mainRoute,
+    authRoute,
+    // Qualquer endereço desconhecido volta para o início.
+    { path: "/:pathMatch(.*)*", redirect: "/" },
+  ],
+  scrollBehavior: () => ({ top: 0 }),
 });
 
 setupAuthGuard(router);

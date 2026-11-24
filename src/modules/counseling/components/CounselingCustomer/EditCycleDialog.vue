@@ -5,64 +5,39 @@ export default {
 </script>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { reactive, watch } from "vue";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
 import Button from "primevue/button";
-
-interface CycleItem {
-  id: number;
-  customer: { id: number };
-  date: Date;
-  cycle: string;
-  fase: string;
-  emotionalScale: string;
-  physicalScale: string;
-  order: number;
-}
+import type { ChronologicalCycle } from "../../services/chronological-cycle.types";
 
 const props = defineProps<{
   visible: boolean;
-  cycle?: CycleItem;
+  cycle?: ChronologicalCycle;
 }>();
 
 const emit = defineEmits<{
   "update:visible": [value: boolean];
-  save: [value: CycleItem];
+  save: [value: ChronologicalCycle];
 }>();
 
-const formData = ref({
-  cycle: "",
-  fase: "",
-  emotionalScale: "",
-  physicalScale: "",
-});
+const formData = reactive({ cycle: "", fase: "", emotionalScale: "", physicalScale: "" });
 
+// Recarrega os campos a cada abertura (antes, reabrir o mesmo ciclo mostrava
+// o texto editado e cancelado da vez anterior).
 watch(
-  () => props.cycle,
-  (newCycle) => {
-    if (newCycle) {
-      formData.value = {
-        cycle: newCycle.cycle,
-        fase: newCycle.fase,
-        emotionalScale: newCycle.emotionalScale,
-        physicalScale: newCycle.physicalScale,
-      };
-    }
+  () => props.visible,
+  (open) => {
+    if (!open || !props.cycle) return;
+    formData.cycle = props.cycle.cycle ?? "";
+    formData.fase = props.cycle.fase ?? "";
+    formData.emotionalScale = props.cycle.emotionalScale ?? "";
+    formData.physicalScale = props.cycle.physicalScale ?? "";
   }
 );
 
 const onSave = () => {
-  if (props.cycle) {
-    emit("save", {
-      ...props.cycle,
-      ...formData.value,
-    });
-  }
-  emit("update:visible", false);
-};
-
-const onHide = () => {
+  if (props.cycle) emit("save", { ...props.cycle, ...formData });
   emit("update:visible", false);
 };
 </script>
@@ -72,47 +47,39 @@ const onHide = () => {
     :visible="visible"
     @update:visible="(value) => emit('update:visible', value)"
     modal
-    header="Editar Ciclo"
-    :style="{ width: '450px' }"
-    :closable="true"
-    @hide="onHide"
+    header="Editar ciclo"
+    :style="{ width: 'min(30rem, 94vw)' }"
+    :draggable="false"
   >
-    <div class="flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <label class="font-bold" for="fase">Fase Cronológica</label>
-        <InputText id="fase" v-model="formData.fase" />
+    <form class="grid gap-4" @submit.prevent="onSave">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="grid gap-1">
+          <label class="font-medium" for="edit-fase">Fase</label>
+          <InputText id="edit-fase" v-model="formData.fase" fluid />
+        </div>
+        <div class="grid gap-1">
+          <label class="font-medium" for="edit-cycle">Ciclo</label>
+          <InputText id="edit-cycle" v-model="formData.cycle" fluid />
+        </div>
+        <div class="grid gap-1">
+          <label class="font-medium" for="edit-emotional">Escala emocional</label>
+          <InputText id="edit-emotional" v-model="formData.emotionalScale" placeholder="0 a 10" fluid />
+        </div>
+        <div class="grid gap-1">
+          <label class="font-medium" for="edit-physical">Escala física</label>
+          <InputText id="edit-physical" v-model="formData.physicalScale" placeholder="0 a 10" fluid />
+        </div>
       </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-bold" for="cycle">Ciclo</label>
-        <InputText id="cycle" v-model="formData.cycle" />
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-bold" for="emotionalScale"
-          >Escala Emocional (0-10)</label
-        >
-        <InputText id="emotionalScale" v-model="formData.emotionalScale" />
-      </div>
-
-      <div class="flex flex-col gap-2">
-        <label class="font-bold" for="physicalScale"
-          >Escala Física (0-10)</label
-        >
-        <InputText id="physicalScale" v-model="formData.physicalScale" />
-      </div>
-    </div>
-
-    <template #footer>
-      <div class="flex justify-end gap-2">
+      <div class="flex justify-end gap-2 pt-2">
         <Button
+          type="button"
           label="Cancelar"
-          icon="pi pi-times"
-          @click="onHide"
-          class="p-button-text"
+          severity="secondary"
+          outlined
+          @click="emit('update:visible', false)"
         />
-        <Button label="Salvar" icon="pi pi-check" @click="onSave" />
+        <Button type="submit" label="Salvar" icon="pi pi-check" />
       </div>
-    </template>
+    </form>
   </Dialog>
 </template>

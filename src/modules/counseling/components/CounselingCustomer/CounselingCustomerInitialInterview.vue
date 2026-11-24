@@ -5,7 +5,6 @@ export default {
 </script>
 <script setup lang="ts">
 import Textarea from "primevue/textarea";
-import TabPanel from "primevue/tabpanel";
 import Button from "primevue/button";
 import { useCounseling } from "@/modules/counseling/hooks/counseling.hook";
 
@@ -16,50 +15,48 @@ const {
   reason,
   symptomsTime,
   loading,
-  updateData,
+  saving,
+  isDirty,
+  save,
 } = useCounseling();
+
+const questions = [
+  { id: "reason", label: "O que te trouxe para a terapia nesse momento?", model: reason },
+  { id: "symptomsTime", label: "Há quanto tempo você vem se sentindo assim?", model: symptomsTime },
+  { id: "dailyLife", label: "Como isso está afetando sua vida no dia a dia?", model: dailyLife },
+  { id: "hasHadTherapy", label: "Você já fez terapia antes? Como foi sua experiência?", model: hasHadTherapy },
+  { id: "expectations", label: "O que você espera alcançar com a terapia?", model: expectations },
+];
 </script>
 <template>
-  <TabPanel value="0">
-    <form class="grid gap-4">
-      <Button
-        :label="loading ? 'Salvando...' : 'Salvar'"
-        :icon="loading ? 'pi pi-spin pi-spinner' : ''"
-        :loading="loading"
+  <form class="grid gap-6 max-w-3xl" @submit.prevent="save">
+    <div v-for="q in questions" :key="q.id" class="grid gap-2">
+      <label :for="q.id" class="font-semibold">{{ q.label }}</label>
+      <Textarea
+        :id="q.id"
+        v-model="q.model.value"
+        rows="3"
+        autoResize
         :disabled="loading"
-        class="ml-auto"
-        @click="updateData"
+        fluid
       />
-      <div class="flex flex-col gap-2">
-        <label class="font-bold"
-          >O que te trouxe para a terapia nesse momento?</label
-        >
-        <Textarea rows="2" v-model="reason" :disabled="loading" />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="font-bold"
-          >Há quanto tempo você vem se sentindo assim?</label
-        >
-        <Textarea rows="2" v-model="symptomsTime" :disabled="loading" />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="font-bold"
-          >Como isso está afetando sua vida no dia a dia?</label
-        >
-        <Textarea rows="2" v-model="dailyLife" :disabled="loading" />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="font-bold"
-          >Você já fez terapia antes? Como foi sua experiência?</label
-        >
-        <Textarea rows="2" v-model="hasHadTherapy" :disabled="loading" />
-      </div>
-      <div class="flex flex-col gap-2">
-        <label class="font-bold"
-          >O que voce espera alcancar com a terapia?</label
-        >
-        <Textarea rows="2" v-model="expectations" :disabled="loading" />
-      </div>
-    </form>
-  </TabPanel>
+    </div>
+
+    <!-- Barra de salvar fixa no rodapé: sempre ao alcance enquanto se escreve -->
+    <div
+      class="sticky bottom-0 -mx-6 lg:-mx-8 px-6 lg:px-8 py-3 bg-surface-0/95 backdrop-blur border-t border-surface-200 flex items-center justify-end gap-4"
+    >
+      <span v-if="isDirty" class="text-surface-600">Alterações não salvas</span>
+      <span v-else-if="!loading" class="text-surface-500">
+        <i class="pi pi-check text-green-600" /> Salvo
+      </span>
+      <Button
+        type="submit"
+        label="Salvar entrevista"
+        icon="pi pi-save"
+        :loading="saving"
+        :disabled="loading || !isDirty"
+      />
+    </div>
+  </form>
 </template>

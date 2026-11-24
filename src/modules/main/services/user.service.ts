@@ -1,22 +1,22 @@
 import apiService from "@/services/api.service";
+import { getToken } from "@/services/session.service";
 import type { AxiosInstance } from "axios";
 import type { User, CachedUser } from "../services/user.types";
 
 class UserService {
-  constructor(
-    private readonly apiService: AxiosInstance,
-    private cache: CachedUser | null = null
-  ) {}
+  private cache: CachedUser | null = null;
 
+  constructor(private readonly apiService: AxiosInstance) {}
+
+  // Cache por token: trocar de conta (outro token) sempre busca de novo.
   async me(): Promise<User> {
-    const token = localStorage.getItem("user_token");
+    const token = getToken();
 
     if (this.cache && this.cache.token === token) {
       return this.cache.data;
     }
 
-    const apiRoute = "auth/verify-token";
-    const { data } = await this.apiService.get<User>(apiRoute);
+    const { data } = await this.apiService.get<User>("auth/verify-token");
 
     if (token) {
       this.cache = { token, data };

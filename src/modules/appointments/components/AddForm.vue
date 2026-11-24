@@ -3,66 +3,77 @@ import Button from "primevue/button";
 import Select from "primevue/select";
 import { ref, computed } from "vue";
 import { useAppointments } from "../hooks/appointments.hook";
-import { useCustomers } from "../../../modules/customers/hooks/customers.hook";
+import { useCustomers } from "@/modules/customers/hooks/customers.hook";
+import type { Customer } from "@/modules/customers/services/customers.types";
 
-const { calendar, createAppointment, isCreating } = useAppointments();
+const { selectedDateAPI, selectedDayAppointments, createAppointment, isCreating } =
+  useAppointments();
 const { customers, isLoading: isLoadingCustomers } = useCustomers();
 
-const time = ref(null);
-const times = ref(
-  Array.from({ length: 14 }, (_, i) => ({
-    name: `${i + 7}:00`,
-    value: `${i + 7}:00`,
-  }))
-);
-
-const customer = ref(null);
-
-const isFormValid = computed(() => {
-  return time.value && customer.value;
+// Horários de 07:00 a 21:00, de 30 em 30 minutos.
+const allTimes = Array.from({ length: 29 }, (_, i) => {
+  const minutes = 7 * 60 + i * 30;
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${minutes % 60 ? "30" : "00"}`;
 });
+
+const times = computed(() => {
+  const taken = new Set(selectedDayAppointments.value.map((a) => a.time));
+  return allTimes.map((t) => ({ label: taken.has(t) ? `${t} (ocupado)` : t, value: t }));
+});
+
+const time = ref<string | null>(null);
+const customer = ref<Customer | null>(null);
+
+const isFormValid = computed(() => !!time.value && !!customer.value);
 
 const handleSubmit = async () => {
   if (!isFormValid.value) return;
-
-  const formattedDate = `${calendar.value.getFullYear()}-${
-    calendar.value.getMonth() + 1
-  }-${calendar.value.getDate()}`;
-
-  await createAppointment({
-    customerId: Number(customer.value.id),
-    date: formattedDate,
-    time: time.value.value,
+  const ok = await createAppointment({
+    customerId: customer.value!.id,
+    date: selectedDateAPI.value,
+    time: time.value!,
   });
-
-  // Reset form
-  time.value = null;
-  customer.value = null;
+  if (ok) {
+    time.value = null;
+    customer.value = null;
+  }
 };
 </script>
 <template>
-  <div class="flex flex-col gap-4">
-    <Select
-      v-model="time"
-      :options="times"
-      optionLabel="name"
-      placeholder="Selecione o horário"
-      :disabled="isCreating"
-    />
-    <Select
-      v-model="customer"
-      :options="customers"
-      optionLabel="name"
-      placeholder="Selecione o cliente"
-      :disabled="isCreating || isLoadingCustomers"
-      :loading="isLoadingCustomers"
-    />
+  <form class="grid gap-3" @submit.prevent="handleSubmit">
+    <h3 class="section-title">Novo agendamento</h3>
+    <div class="grid sm:grid-cols-[9rem_1fr] gap-3">
+      <Select
+        v-model="time"
+        :options="times"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Horário"
+        :disabled="isCreating"
+        scrollHeight="18rem"
+        aria-label="Horário"
+      />
+      <Select
+        v-model="customer"
+        :options="customers"
+        optionLabel="name"
+        placeholder="Cliente"
+        filter
+        filterPlaceholder="Buscar cliente"
+        emptyFilterMessage="Nenhum cliente encontrado"
+        emptyMessage="Cadastre um cliente primeiro"
+        :disabled="isCreating"
+        :loading="isLoadingCustomers"
+        scrollHeight="18rem"
+        aria-label="Cliente"
+      />
+    </div>
     <Button
+      type="submit"
       icon="pi pi-calendar-plus"
-      :label="isCreating ? 'Agendando...' : 'Agendar'"
+      label="Agendar"
       :loading="isCreating"
-      :disabled="!isFormValid || isCreating"
-      @click="handleSubmit"
+      :disabled="!isFormValid"
     />
-  </div>
+  </form>
 </template>

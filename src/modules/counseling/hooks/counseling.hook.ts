@@ -1,72 +1,92 @@
-import type { CounselingData } from "../services/counseling.types";
-import { ref, reactive, toRefs } from "vue";
+import type { CounselingFields } from "../services/counseling.types";
+import { computed, reactive, ref, toRefs } from "vue";
 import counselingService from "../services/counseling.service";
-import { useRoute } from "vue-router";
+import { useToast } from "primevue/usetoast";
+import { getApiErrorMessage } from "@/helpers/api-error.helper";
 
-const loading = ref(false);
+const FIELDS: (keyof CounselingFields)[] = [
+  "reason",
+  "symptomsTime",
+  "dailyLife",
+  "hasHadTherapy",
+  "expectations",
+];
 
-const customerCounselingState = reactive<CounselingData>({
-  id: 0,
-  customer: {
-    id: 0,
-    name: "",
-  },
-  dailyLife: "",
-  expectations: "",
-  hasHadTherapy: "",
+const emptyFields = (): CounselingFields => ({
   reason: "",
   symptomsTime: "",
+  dailyLife: "",
+  hasHadTherapy: "",
+  expectations: "",
 });
 
+const state = reactive({
+  customerId: 0,
+  customerName: "",
+  loading: false,
+  saving: false,
+  notFound: false,
+});
+const fields = reactive<CounselingFields>(emptyFields());
+const saved = ref<CounselingFields>(emptyFields());
+
+// Há texto digitado que ainda não foi salvo?
+const isDirty = computed(() => FIELDS.some((f) => (fields[f] ?? "") !== (saved.value[f] ?? "")));
+
+const applyFields = (data: Partial<CounselingFields>) => {
+  const clean = emptyFields();
+  FIELDS.forEach((f) => (clean[f] = data[f] ?? ""));
+  Object.assign(fields, clean);
+  saved.value = { ...clean };
+};
+
 export const useCounseling = () => {
-  const route = useRoute();
+  const toast = useToast();
 
-  const getData = async () => {
-    loading.value = true;
+  // Carrega a ficha do cliente. Limpa a anterior antes, para nunca mostrar
+  // a ficha de um cliente na tela de outro se a requisição falhar.
+  const load = async (customerId: number) => {
+    state.customerId = customerId;
+    state.customerName = "";
+    state.notFound = false;
+    applyFields({});
+    state.loading = true;
     try {
-      const customerId = Number(route.params.id);
-
-      if (!customerId || isNaN(customerId)) {
-        throw new Error("ID do customer inválido");
-      }
-
       const data = await counselingService.getCustomerCounseling(customerId);
-      Object.assign(customerCounselingState, data);
-    } catch (error) {
-      console.error("Error fetching customers data:", error);
+      state.customerName = data.customer?.name ?? "";
+      applyFields(data);
+    } catch {
+      state.notFound = true;
     } finally {
-      loading.value = false;
+      state.loading = false;
     }
   };
 
-  const updateData = async () => {
-    loading.value = true;
+  const save = async () => {
+    if (!state.customerId) return;
+    state.saving = true;
     try {
-      const customerId = Number(route.params.id);
-
-      if (!customerId || isNaN(customerId)) {
-        throw new Error("ID do customer inválido");
-      }
-
-      const payload = {
-        dailyLife: customerCounselingState.dailyLife,
-        expectations: customerCounselingState.expectations,
-        hasHadTherapy: customerCounselingState.hasHadTherapy,
-        reason: customerCounselingState.reason,
-        symptomsTime: customerCounselingState.symptomsTime,
-      };
-      await counselingService.updateCustomerCounseling(customerId, payload);
+      const payload = Object.fromEntries(FIELDS.map((f) => [f, fields[f]]));
+      const data = await counselingService.updateCustomerCounseling(state.customerId, payload);
+      applyFields(data);
+      toast.add({ severity: "success", summary: "Entrevista salva", life: 2500 });
     } catch (error) {
-      console.error("Error updating customers data:", error);
+      toast.add({
+        severity: "error",
+        summary: "Não foi possível salvar",
+        detail: getApiErrorMessage(error, "Seu texto continua na tela. Tente novamente."),
+        life: 6000,
+      });
     } finally {
-      loading.value = false;
+      state.saving = false;
     }
   };
 
   return {
-    ...toRefs(customerCounselingState),
-    loading,
-    updateData,
-    getData,
+    ...toRefs(state),
+    ...toRefs(fields),
+    isDirty,
+    load,
+    save,
   };
 };

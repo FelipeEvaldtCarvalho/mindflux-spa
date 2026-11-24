@@ -1,104 +1,108 @@
 import { reactive, toRefs, computed } from "vue";
 import appointmentsService from "../services/appointments.service";
+import type {
+  Appointment,
+  CreateAppointmentPayload,
+} from "../services/appointments.service";
 import { useToast } from "primevue/usetoast";
-import type { CreateAppointmentPayload } from "../services/appointments.service";
+import { formatDateToAPI } from "@/helpers/date.helper";
+import { getApiErrorMessage } from "@/helpers/api-error.helper";
 
-const appointments = reactive({
-  isLoadingMonthData: true,
-  calendar: new Date(),
-  monthData: [],
+const today = new Date();
+
+const state = reactive({
+  isLoadingMonthData: false,
   isCreating: false,
+  calendar: today, // dia selecionado
+  viewYear: today.getFullYear(), // mês exibido no calendário
+  viewMonth: today.getMonth() + 1,
+  monthData: [] as Appointment[],
 });
 
-const getMonthData = async (month: string) => {
+let lastRequest = 0;
+
+const loadMonth = async (year = state.viewYear, month = state.viewMonth) => {
+  state.viewYear = year;
+  state.viewMonth = month;
+  const requestId = ++lastRequest;
   try {
-    appointments.isLoadingMonthData = true;
-    appointments.monthData = [];
-    appointments.monthData = await appointmentsService.getMonthData(month);
-  } catch (error) {
-    console.error(error);
-    appointments.monthData = [];
+    state.isLoadingMonthData = true;
+    const data = await appointmentsService.getMonthData(year, month);
+    // Ignora respostas atrasadas de um mês que já não está na tela.
+    if (requestId === lastRequest) state.monthData = data;
+  } catch {
+    if (requestId === lastRequest) state.monthData = [];
   } finally {
-    appointments.isLoadingMonthData = false;
+    if (requestId === lastRequest) state.isLoadingMonthData = false;
   }
 };
 
-const selectedDayAppointments = computed(() => {
-  return appointments.monthData.filter(
-    (appointment) =>
-      Number(appointment.date.split("-")[2]) === appointments.calendar.getDate()
-  );
-});
+const selectedDateAPI = computed(() => formatDateToAPI(state.calendar));
 
-const getInitialMonthData = async () => {
-  const month = `${
-    appointments.calendar.getMonth() + 1
-  }-${appointments.calendar.getFullYear()}`;
-  appointments.monthData = await appointmentsService.getMonthData(month);
-};
+// Compara a data inteira (antes comparava só o dia do mês e misturava meses).
+const selectedDayAppointments = computed(() =>
+  state.monthData
+    .filter((a) => a.date === selectedDateAPI.value)
+    .sort((a, b) => a.time.localeCompare(b.time))
+);
 
-const containDay = (day: number) => {
-  return appointments.monthData.some(
-    (appointment) => Number(appointment.date.split("-")[2]) === day
-  );
-};
+const daysWithAppointments = computed(() => new Set(state.monthData.map((a) => a.date)));
 
 export const useAppointments = () => {
   const toast = useToast();
 
   const createAppointment = async (payload: CreateAppointmentPayload) => {
     try {
-      appointments.isCreating = true;
+      state.isCreating = true;
       await appointmentsService.create(payload);
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Agendamento criado com sucesso",
-        life: 3000,
-      });
-      getInitialMonthData();
+      toast.add({ severity: "success", summary: "Agendado", life: 3000 });
+      await loadMonth();
+      return true;
     } catch (error) {
-      console.error(error);
       toast.add({
         severity: "error",
-        summary: "Erro",
-        detail: "Erro ao criar agendamento",
-        life: 3000,
+        summary: "Não foi possível agendar",
+        detail: getApiErrorMessage(error, "Tente novamente."),
+        life: 5000,
       });
+      return false;
     } finally {
-      appointments.isCreating = false;
+      state.isCreating = false;
     }
   };
 
   const deleteAppointment = async (id: number) => {
     try {
       await appointmentsService.delete(id);
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Agendamento deletado com sucesso",
-        life: 3000,
-      });
+      state.monthData = state.monthData.filter((a) => a.id !== id);
+      toast.add({ severity: "success", summary: "Agendamento excluído", life: 3000 });
     } catch (error) {
-      console.error(error);
       toast.add({
         severity: "error",
-        summary: "Erro",
-        detail: "Erro ao deletar agendamento",
-        life: 3000,
+        summary: "Não foi possível excluir",
+        detail: getApiErrorMessage(error, "Tente novamente."),
+        life: 5000,
       });
-    } finally {
-      getInitialMonthData();
+      await loadMonth();
+    }
+  };
+
+  // Ao escolher um dia de outro mês, carrega esse mês.
+  const selectDate = (date: Date) => {
+    state.calendar = date;
+    if (date.getFullYear() !== state.viewYear || date.getMonth() + 1 !== state.viewMonth) {
+      loadMonth(date.getFullYear(), date.getMonth() + 1);
     }
   };
 
   return {
-    ...toRefs(appointments),
-    getMonthData,
-    getInitialMonthData,
-    containDay,
+    ...toRefs(state),
+    selectedDateAPI,
     selectedDayAppointments,
-    deleteAppointment,
+    daysWithAppointments,
+    loadMonth,
+    selectDate,
     createAppointment,
+    deleteAppointment,
   };
 };

@@ -7,8 +7,8 @@ export type Appointment = {
     name: string;
   };
   id: number;
-  date: string;
-  time: string;
+  date: string; // "AAAA-MM-DD"
+  time: string; // "HH:mm"
 };
 
 export type CreateAppointmentPayload = {
@@ -17,20 +17,24 @@ export type CreateAppointmentPayload = {
   time: string;
 };
 
+const pad = (n: number) => String(n).padStart(2, "0");
+
 class AppointmentsService {
   constructor(
     private readonly apiService: AxiosInstance,
     private readonly apiRoute: string = "/appointments"
   ) {}
 
-  async getMonthData(date: string): Promise<Appointment[]> {
-    const route = `${this.apiRoute}/month/${date}`;
-    const { data } = await this.apiService.get(route);
+  // month: 1–12
+  async getMonthData(year: number, month: number): Promise<Appointment[]> {
+    const { data } = await this.apiService.get<Appointment[]>(
+      `${this.apiRoute}/month/${pad(month)}-${year}`
+    );
     return data;
   }
 
   async create(payload: CreateAppointmentPayload): Promise<Appointment> {
-    const { data } = await this.apiService.post(this.apiRoute, payload);
+    const { data } = await this.apiService.post<Appointment>(this.apiRoute, payload);
     return data;
   }
 

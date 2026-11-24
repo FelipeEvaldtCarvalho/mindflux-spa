@@ -4,56 +4,62 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import TabPanel from "primevue/tabpanel";
-import { onMounted } from "vue";
+import { computed } from "vue";
+import Skeleton from "primevue/skeleton";
+import FeedBack from "@/components/FeedBack.vue";
 import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
 import { formatDateToDisplay } from "@/helpers/date.helper";
 
-const { getList, viewList } = useChronologicalCycle();
+const { history, historyLoading } = useChronologicalCycle();
 
-//renomear essa funçao
-const getDate = (key: string | number) => {
-  if (typeof key === "string") {
-    return key;
-  }
-  return key.toString();
-};
-
-onMounted(getList);
+// Datas da mais recente para a mais antiga.
+const dates = computed(() => Object.keys(history.value).sort().reverse());
 </script>
 <template>
-  <TabPanel value="2">
-    <div
-      v-for="(value, key) in viewList"
-      :key="key"
-      class="flex flex-col gap-2"
+  <div v-if="historyLoading" class="grid gap-3">
+    <Skeleton v-for="n in 3" :key="n" height="120px" borderRadius="12px" />
+  </div>
+
+  <FeedBack
+    v-else-if="!dates.length"
+    icon="folder_open"
+    title="Nenhum ciclo registrado"
+    description="Os ciclos lançados na aba Ciclo cronológico aparecem aqui, agrupados por data."
+  />
+
+  <div v-else class="grid gap-6">
+    <section
+      v-for="date in dates"
+      :key="date"
+      class="rounded-xl border border-surface-200 overflow-hidden"
     >
-      <span
-        class="text-sm font-bold text-primary-900 w-full bg-primary-100 p-3 rounded-md"
-        >{{ formatDateToDisplay(getDate(key)) }}</span
-      >
-      <ul>
-        <li
-          class="grid grid-cols-[60px_60px_1fr_1fr] gap-2 p-3 border-b border-gray-300"
-        >
-          <span class="text-sm font-bold text-primary-900">Ciclo</span>
-          <span class="text-sm font-bold text-primary-900">Fase</span>
-          <span class="text-sm font-bold text-primary-900"
-            >Escala Emocional</span
-          >
-          <span class="text-sm font-bold text-primary-900">Escala Física</span>
-        </li>
-        <li
-          v-for="cycle in value"
-          :key="cycle.id"
-          class="grid grid-cols-[60px_60px_1fr_1fr] gap-2 p-3 border-b border-gray-300"
-        >
-          <span>{{ cycle.cycle }}</span>
-          <span>{{ cycle.fase }}</span>
-          <span>{{ cycle.emotionalScale }}</span>
-          <span>{{ cycle.physicalScale }}</span>
-        </li>
-      </ul>
-    </div>
-  </TabPanel>
+      <h3 class="font-semibold text-primary-900 bg-primary-50 px-4 py-3">
+        {{ formatDateToDisplay(date) }}
+      </h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead class="text-sm text-surface-600">
+            <tr class="border-b border-surface-200">
+              <th class="px-4 py-2 font-semibold w-28">Fase</th>
+              <th class="px-4 py-2 font-semibold w-28">Ciclo</th>
+              <th class="px-4 py-2 font-semibold">Escala emocional</th>
+              <th class="px-4 py-2 font-semibold">Escala física</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr
+              v-for="cycle in history[date]"
+              :key="cycle.id"
+              class="border-b border-surface-100 last:border-0"
+            >
+              <td class="px-4 py-3">{{ cycle.fase }}</td>
+              <td class="px-4 py-3">{{ cycle.cycle }}</td>
+              <td class="px-4 py-3">{{ cycle.emotionalScale }}</td>
+              <td class="px-4 py-3">{{ cycle.physicalScale }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
 </template>

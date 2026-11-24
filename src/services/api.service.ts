@@ -1,60 +1,69 @@
 import axios from "axios";
 import type { AxiosInstance, InternalAxiosRequestConfig } from "axios";
+import { reactive } from "vue";
 
+import { clearSession, getToken } from "./session.service";
 import router from "../router";
 
-class ApiService {
-  private static instance: ApiService;
-  private axiosInstance: AxiosInstance;
+// O Render (plano grátis) desliga a API sem uso e leva até ~1 min para religar.
+// Se uma requisição demora, o App mostra um aviso em vez de parecer travado.
+const SLOW_REQUEST_MS = 4000;
+export const connectionState = reactive({ slowRequests: 0 });
 
-  private constructor() {
-    this.axiosInstance = axios.create({
-      baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/",
-    });
+const slowTimers = new WeakMap<object, ReturnType<typeof setTimeout>>();
 
-    // Request interceptor
-    this.axiosInstance.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem("user_token");
+const startTracking = (config: InternalAxiosRequestConfig) => {
+  const timer = setTimeout(() => {
+    connectionState.slowRequests++;
+    (config as any).__slow = true;
+  }, SLOW_REQUEST_MS);
+  slowTimers.set(config, timer);
+};
 
-        if (token) {
-          config.headers.set("Authorization", `Bearer ${token}`);
-        }
+const stopTracking = (config?: InternalAxiosRequestConfig) => {
+  if (!config) return;
+  clearTimeout(slowTimers.get(config));
+  if ((config as any).__slow) {
+    connectionState.slowRequests = Math.max(0, connectionState.slowRequests - 1);
+  }
+};
 
-        config.headers.set("Content-Type", "application/json");
+const api: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:3000/",
+  timeout: 90_000,
+});
 
-        return config;
-      },
-      (error) => Promise.reject(error)
-    );
+api.interceptors.request.use((config) => {
+  const token = getToken();
+  if (token) {
+    config.headers.set("Authorization", `Bearer ${token}`);
+  }
+  config.headers.set("Content-Type", "application/json");
+  startTracking(config);
+  return config;
+});
 
-    // Response interceptor
-    this.axiosInstance.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        const status = error.response?.status;
-        const message = error.response?.statusText;
+api.interceptors.response.use(
+  (response) => {
+    stopTracking(response.config);
+    return response;
+  },
+  (error) => {
+    stopTracking(error.config);
 
-        if (status === 401 && message === "Unauthorized") {
-          localStorage.removeItem("user_token");
-          router.push("/auth/login");
-        }
-
-        return Promise.reject(error);
+    // Sessão expirada ou usuário desativado: volta para o login.
+    // (Antes comparava statusText === "Unauthorized", que vem vazio em HTTP/2.)
+    const isLoginRequest = error.config?.url?.includes("auth/login");
+    if (error.response?.status === 401 && !isLoginRequest) {
+      clearSession();
+      const current = router.currentRoute.value;
+      if (!current.path.startsWith("/auth")) {
+        router.push({ name: "auth.login", query: { redirect: current.fullPath } });
       }
-    );
-  }
-
-  public static getInstance(): ApiService {
-    if (!ApiService.instance) {
-      ApiService.instance = new ApiService();
     }
-    return ApiService.instance;
-  }
 
-  public get axios() {
-    return this.axiosInstance;
+    return Promise.reject(error);
   }
-}
+);
 
-export default ApiService.getInstance();
+export default { axios: api };

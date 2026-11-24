@@ -1,6 +1,5 @@
-import { ref, reactive, toRefs, watch, computed } from "vue";
+import { reactive, toRefs, watch } from "vue";
 import chronologicalCycleService from "../services/chronological-cycle.service";
-import { useRoute } from "vue-router";
 import { useToast } from "primevue/usetoast";
 import type {
   ChronologicalCycle,
@@ -8,270 +7,183 @@ import type {
   ChronologicalCycleList,
 } from "../services/chronological-cycle.types";
 import { formatDateToAPI } from "@/helpers/date.helper";
+import { getApiErrorMessage } from "@/helpers/api-error.helper";
 
-const chronologicalCycleState = reactive({
+// Estado único da tela de ciclos. O cliente é definido por setCustomer() na página
+// (antes cada componente registrava seus próprios watchers e a lista era buscada 3x).
+const state = reactive({
+  customerId: 0,
+  selectedDate: new Date(),
   isLoading: false,
   isSaving: false,
+  isSavingOrder: false,
   list: [] as ChronologicalCycle[],
+  historyLoading: false,
+  history: {} as ChronologicalCycleList,
 });
 
-const chronologicalCycleListState = reactive({
-  isLoading: false,
-  viewList: {} as ChronologicalCycleList,
-});
-
-const actualListIds = computed(() =>
-  chronologicalCycleState.list.map(({ id }) => id)
-);
-
-const hasOrderChanged = computed(() => {
-  return (
-    savedOrder.value.length === actualListIds.value.length &&
-    savedOrder.value.every((id, index) => id === actualListIds.value[index])
-  );
-});
-
-const savedOrder = ref<number[]>([]);
-const selectedCycle = ref<ChronologicalCycle | undefined>();
-const selectedDate = ref(new Date());
-
-const chronologicalCycleFormState = reactive<ChronologicalCycleFormData>({
+const form = reactive<ChronologicalCycleFormData>({
   cycle: "",
   fase: "",
   emotionalScale: "",
   physicalScale: "",
 });
 
-export const useChronologicalCycle = () => {
-  const route = useRoute();
-  const toast = useToast();
+const resetForm = () => Object.assign(form, { cycle: "", fase: "", emotionalScale: "", physicalScale: "" });
 
-  const getData = async () => {
-    chronologicalCycleState.isLoading = true;
+let toast: ReturnType<typeof useToast> | null = null;
+const notifyError = (summary: string, error: unknown) =>
+  toast?.add({
+    severity: "error",
+    summary,
+    detail: getApiErrorMessage(error, "Tente novamente."),
+    life: 5000,
+  });
+
+let listRequest = 0;
+const loadDay = async () => {
+  if (!state.customerId) return;
+  const requestId = ++listRequest;
+  state.isLoading = true;
+  try {
+    const data = await chronologicalCycleService.getChronologicalCycleByDate(
+      state.customerId,
+      formatDateToAPI(state.selectedDate)
+    );
+    if (requestId === listRequest) state.list = data;
+  } catch (error) {
+    if (requestId === listRequest) {
+      state.list = [];
+      notifyError("Erro ao carregar os ciclos", error);
+    }
+  } finally {
+    if (requestId === listRequest) state.isLoading = false;
+  }
+};
+
+const loadHistory = async () => {
+  if (!state.customerId) return;
+  state.historyLoading = true;
+  try {
+    state.history = await chronologicalCycleService.getChronologicalCycleList(state.customerId);
+  } catch (error) {
+    notifyError("Erro ao carregar o histórico", error);
+  } finally {
+    state.historyLoading = false;
+  }
+};
+
+watch(
+  () => state.selectedDate,
+  () => loadDay()
+);
+
+// Salva a nova ordem logo após mover (com uma pequena espera para agrupar
+// vários toques seguidos). Antes era preciso lembrar de tocar em "salvar".
+let orderTimer: ReturnType<typeof setTimeout> | undefined;
+const saveOrderSoon = () => {
+  clearTimeout(orderTimer);
+  orderTimer = setTimeout(async () => {
+    state.isSavingOrder = true;
     try {
-      const customerId = Number(route.params.id);
-
-      if (!customerId || isNaN(customerId)) {
-        throw new Error("ID do customer inválido");
-      }
-
-      const data = await chronologicalCycleService.getChronologicalCycleByDate(
-        customerId,
-        formatDateToAPI(selectedDate.value)
+      await chronologicalCycleService.updateOrder(
+        state.list.map((cycle, index) => ({ id: cycle.id, order: index + 1 }))
       );
-      chronologicalCycleState.list = data;
-      savedOrder.value = data.map((cycle) => cycle.id);
     } catch (error) {
-      console.error("Error fetching customers data:", error);
-      toast.add({
-        severity: "error",
-        summary: "Erro",
-        detail: "Erro ao carregar os ciclos cronológicos",
-        life: 3000,
-      });
+      notifyError("A nova ordem não foi salva", error);
+      await loadDay();
     } finally {
-      chronologicalCycleState.isLoading = false;
+      state.isSavingOrder = false;
+    }
+  }, 700);
+};
+
+export const useChronologicalCycle = () => {
+  toast = useToast();
+
+  const setCustomer = (customerId: number) => {
+    clearTimeout(orderTimer);
+    state.customerId = customerId;
+    state.list = [];
+    state.history = {};
+    resetForm();
+    const today = new Date();
+    if (formatDateToAPI(state.selectedDate) !== formatDateToAPI(today)) {
+      state.selectedDate = today; // o watcher recarrega
+    } else {
+      loadDay();
     }
   };
 
   const createCycle = async () => {
-    chronologicalCycleState.isSaving = true;
+    if (!form.fase.trim() || !form.cycle.trim()) return false;
+    state.isSaving = true;
     try {
-      const customerId = Number(route.params.id);
-
-      if (!customerId || isNaN(customerId)) {
-        throw new Error("ID do customer inválido");
-      }
-
-      const payload = {
-        customerId,
-        date: formatDateToAPI(selectedDate.value),
-        cycle: chronologicalCycleFormState.cycle,
-        fase: chronologicalCycleFormState.fase,
-        emotionalScale: chronologicalCycleFormState.emotionalScale,
-        physicalScale: chronologicalCycleFormState.physicalScale,
-      };
-      const data = await chronologicalCycleService.createChronologicalCycle(
-        payload
-      );
-
-      chronologicalCycleState.list.push(data);
-
-      chronologicalCycleFormState.cycle = "";
-      chronologicalCycleFormState.fase = "";
-      chronologicalCycleFormState.emotionalScale = "";
-      chronologicalCycleFormState.physicalScale = "";
-
-      savedOrder.value = [...savedOrder.value, data.id];
-
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Ciclo cronológico criado com sucesso",
-        life: 3000,
+      const data = await chronologicalCycleService.createChronologicalCycle({
+        customerId: state.customerId,
+        date: formatDateToAPI(state.selectedDate),
+        cycle: form.cycle.trim(),
+        fase: form.fase.trim(),
+        emotionalScale: form.emotionalScale.trim(),
+        physicalScale: form.physicalScale.trim(),
       });
-    } catch {
-      toast.add({
-        severity: "error",
-        summary: "Erro",
-        detail: "Erro ao criar ciclo cronológico",
-        life: 3000,
-      });
+      state.list.push(data);
+      resetForm();
+      return true;
+    } catch (error) {
+      notifyError("Não foi possível adicionar o ciclo", error);
+      return false;
     } finally {
-      chronologicalCycleState.isSaving = false;
+      state.isSaving = false;
     }
   };
 
   const updateCycle = async (cycle: ChronologicalCycle) => {
-    chronologicalCycleState.isSaving = true;
+    state.isSaving = true;
     try {
-      const data = await chronologicalCycleService.updateChronologicalCycle(
-        cycle.id,
-        cycle
-      );
-      const index = chronologicalCycleState.list.findIndex(
-        (item) => item.id === cycle.id
-      );
-      if (index !== -1) {
-        chronologicalCycleState.list[index] = data;
-      }
-
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Ciclo atualizado com sucesso",
-        life: 3000,
+      const data = await chronologicalCycleService.updateChronologicalCycle(cycle.id, {
+        cycle: cycle.cycle,
+        fase: cycle.fase,
+        emotionalScale: cycle.emotionalScale,
+        physicalScale: cycle.physicalScale,
       });
-    } catch {
-      toast.add({
-        severity: "error",
-        summary: "Erro",
-        detail: "Erro ao atualizar ciclo",
-        life: 3000,
-      });
+      const index = state.list.findIndex((item) => item.id === cycle.id);
+      if (index !== -1) state.list[index] = data;
+      toast?.add({ severity: "success", summary: "Ciclo atualizado", life: 2500 });
+    } catch (error) {
+      notifyError("Não foi possível atualizar o ciclo", error);
     } finally {
-      chronologicalCycleState.isSaving = false;
+      state.isSaving = false;
     }
   };
 
-  const saveOrder = async () => {
-    chronologicalCycleState.isSaving = true;
-    try {
-      const cycles: { id: number; order: number }[] =
-        chronologicalCycleState.list.map((cycle, index) => {
-          return {
-            id: cycle.id,
-            order: index + 1,
-          };
-        });
-      await chronologicalCycleService.updateOrder(cycles);
-
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Ordem dos ciclos salva com sucesso",
-        life: 3000,
-      });
-      savedOrder.value = cycles.map((cycle) => cycle.id);
-    } catch (error) {
-      console.error("Erro ao salvar ordem:", error);
-      toast.add({
-        severity: "error",
-        summary: "Erro",
-        detail: "Erro ao salvar a ordem dos ciclos",
-        life: 3000,
-      });
-    } finally {
-      chronologicalCycleState.isSaving = false;
-    }
+  const reorder = (items: ChronologicalCycle[]) => {
+    state.list = items;
+    saveOrderSoon();
   };
 
   const deleteCycle = async (id: number) => {
-    chronologicalCycleState.isSaving = true;
+    state.isSaving = true;
     try {
       await chronologicalCycleService.deleteChronologicalCycle(id);
-      chronologicalCycleState.list = chronologicalCycleState.list.filter(
-        (cycle) => cycle.id !== id
-      );
-      savedOrder.value = savedOrder.value.filter((order) => order !== id);
-      toast.add({
-        severity: "success",
-        summary: "Sucesso",
-        detail: "Ciclo deletado com sucesso",
-        life: 3000,
-      });
-    } catch {
-      toast.add({
-        severity: "error",
-        summary: "Erro",
-        detail: "Erro ao deletar ciclo",
-        life: 3000,
-      });
-    } finally {
-      chronologicalCycleState.isSaving = false;
-    }
-  };
-
-  const getList = async () => {
-    try {
-      chronologicalCycleListState.isLoading = true;
-      const customerId = Number(route.params.id);
-
-      if (!customerId || isNaN(customerId)) {
-        throw new Error("ID do customer inválido");
-      }
-
-      const data = await chronologicalCycleService.getChronologicalCycleList(
-        customerId
-      );
-      chronologicalCycleListState.viewList = data;
+      state.list = state.list.filter((cycle) => cycle.id !== id);
+      toast?.add({ severity: "success", summary: "Ciclo excluído", life: 2500 });
     } catch (error) {
-      console.error("Error fetching customers data:", error);
+      notifyError("Não foi possível excluir o ciclo", error);
     } finally {
-      chronologicalCycleListState.isLoading = false;
+      state.isSaving = false;
     }
   };
-
-  const resetState = () => {
-    chronologicalCycleState.isLoading = false;
-    chronologicalCycleState.isSaving = false;
-    chronologicalCycleState.list = [];
-    chronologicalCycleListState.isLoading = false;
-    chronologicalCycleListState.viewList = {};
-    savedOrder.value = [];
-    selectedCycle.value = undefined;
-    chronologicalCycleFormState.cycle = "";
-    chronologicalCycleFormState.fase = "";
-    chronologicalCycleFormState.emotionalScale = "";
-    chronologicalCycleFormState.physicalScale = "";
-  };
-
-  watch(selectedDate, () => {
-    getData();
-  });
-
-  watch(
-    () => route.params.id,
-    () => {
-      resetState();
-      getData();
-    },
-    { immediate: true }
-  );
 
   return {
-    ...toRefs(chronologicalCycleState),
-    ...toRefs(chronologicalCycleFormState),
-    ...toRefs(chronologicalCycleListState),
-    selectedCycle,
-    getData,
+    ...toRefs(state),
+    ...toRefs(form),
+    setCustomer,
+    loadDay,
+    loadHistory,
     createCycle,
-    saveOrder,
-    selectedDate,
-    hasOrderChanged,
-    deleteCycle,
     updateCycle,
-    getList,
-    resetState,
+    reorder,
+    deleteCycle,
   };
 };

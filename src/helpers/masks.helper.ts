@@ -1,68 +1,70 @@
-/**
- * Aplica máscara de telefone brasileiro
- * Suporta telefones fixos (8 dígitos) e celular (9 dígitos)
- * Formato: (11) 1234-5678 ou (11) 91234-5678
- */
-export function phoneMask(value: string): string {
-  if (!value) return "";
+export const onlyDigits = (value?: string | null): string =>
+  (value ?? "").replace(/\D/g, "");
 
-  // Remove todos os caracteres não numéricos
-  const cleanValue = value.replace(/\D/g, "");
-
-  // Se não há dígitos, retorna string vazia
-  if (cleanValue.length === 0) return "";
-
-  // Aplica máscara baseada no número de dígitos
-  if (cleanValue.length <= 2) {
-    // Apenas DDD
-    return `(${cleanValue}`;
-  } else if (cleanValue.length <= 6) {
-    // DDD + início do número
-    return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(2)}`;
-  } else if (cleanValue.length <= 10) {
-    // Telefone fixo: (11) 1234-5678
-    return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(
-      2,
-      6
-    )}-${cleanValue.slice(6)}`;
-  } else {
-    // Telefone celular: (11) 91234-5678
-    return `(${cleanValue.slice(0, 2)}) ${cleanValue.slice(
-      2,
-      7
-    )}-${cleanValue.slice(7, 11)}`;
+// Aplica um padrão em que "9" é um dígito: applyPattern("12345678900", "999.999.999-99").
+// Funciona bem com o teclado numérico do iPad (o InputMask do PrimeVue perde o cursor no Safari).
+export const applyPattern = (value: string, pattern: string): string => {
+  const digits = onlyDigits(value);
+  let result = "";
+  let i = 0;
+  for (const char of pattern) {
+    if (i >= digits.length) break;
+    if (char === "9") {
+      result += digits[i++];
+    } else {
+      result += char;
+    }
   }
-}
+  return result;
+};
+
+export const cpfMask = (value?: string | null) => applyPattern(value ?? "", "999.999.999-99");
+
+export const dateMask = (value?: string | null) => applyPattern(value ?? "", "99/99/9999");
 
 /**
- * Remove a máscara do telefone, retornando apenas os números
+ * Telefone brasileiro: (11) 1234-5678 ou (11) 91234-5678
  */
-export function removePhoneMask(value: string): string {
-  return value.replace(/\D/g, "");
+export function phoneMask(value?: string | null): string {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (!digits) return "";
+  if (digits.length <= 2) return `(${digits}`;
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
 }
 
 /**
- * Valida se o telefone está no formato correto
- * Aceita telefones com 10 dígitos (fixo) ou 11 dígitos (celular)
+ * Aceita 10 dígitos (fixo) ou 11 (celular, começando com 9 depois do DDD).
  */
 export function isValidPhone(value: string): boolean {
-  const cleanValue = removePhoneMask(value);
-
-  // Deve ter 10 ou 11 dígitos
-  if (cleanValue.length !== 10 && cleanValue.length !== 11) {
-    return false;
-  }
-
-  // DDD deve ser válido (11-99)
-  const ddd = parseInt(cleanValue.slice(0, 2));
-  if (ddd < 11 || ddd > 99) {
-    return false;
-  }
-
-  // Se for celular (11 dígitos), o primeiro dígito após DDD deve ser 9
-  if (cleanValue.length === 11 && cleanValue[2] !== "9") {
-    return false;
-  }
-
+  const digits = onlyDigits(value);
+  if (digits.length !== 10 && digits.length !== 11) return false;
+  const ddd = Number(digits.slice(0, 2));
+  if (ddd < 11 || ddd > 99) return false;
+  if (digits.length === 11 && digits[2] !== "9") return false;
   return true;
 }
+
+// Validação dos dígitos verificadores do CPF.
+export function isValidCpf(value: string): boolean {
+  const cpf = onlyDigits(value);
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const check = (len: number) => {
+    let sum = 0;
+    for (let i = 0; i < len; i++) sum += Number(cpf[i]) * (len + 1 - i);
+    const rest = (sum * 10) % 11;
+    return rest === 10 ? 0 : rest;
+  };
+  return check(9) === Number(cpf[9]) && check(10) === Number(cpf[10]);
+}
+
+// Busca sem diferenciar maiúsculas nem acentos ("joao" encontra "João").
+export const normalizeSearch = (value?: string | null): string =>
+  (value ?? "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();

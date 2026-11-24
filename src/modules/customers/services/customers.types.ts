@@ -1,12 +1,18 @@
 export type Customer = {
-  id: string;
+  id: number;
   name: string;
-  document?: string;
-  birthdate?: string;
-  address?: string;
-  phone: string;
+  document?: string | null;
+  birthdate?: string | null; // "AAAA-MM-DD"
+  address?: string | null;
+  phone: string; // só dígitos
 };
 
 export type Customers = Customer[];
 
-export type CreateCustomer = Omit<Customer, "id">;
+export type CustomerPayload = {
+  name: string;
+  phone: string;
+  document: string | null;
+  birthdate: string | null;
+  address: string | null;
+};

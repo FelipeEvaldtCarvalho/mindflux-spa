@@ -1,31 +1,39 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
   <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>MindFlux</title>
+
+    <!-- Ícone e modo "app" quando adicionado à Tela de Início do iPad -->
+    <link rel="icon" type="image/svg+xml" href="/fav.svg" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#dbeafe" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="MindFlux" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="format-detection" content="telephone=no" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Só os pesos usados (antes baixava 100–900 + itálicos) -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <!-- Só os ícones usados (o pacote completo tem vários MB). Ao usar um ícone novo,
+         inclua o nome aqui, em ordem alfabética. -->
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=calendar_month,chevron_right,close,cloud_sync,dashboard,event_available,folder,folder_open,grid_view,groups,manage_accounts,network_intel_node,warning&display=block"
       rel="stylesheet"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
-      rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    />
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/fav.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MindFlux</title>
   </head>
   <body>
     <div id="app"></div>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

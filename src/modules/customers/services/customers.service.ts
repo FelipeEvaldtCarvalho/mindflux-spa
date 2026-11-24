@@ -1,6 +1,6 @@
 import apiService from "@/services/api.service";
 import type { AxiosInstance } from "axios";
-import type { Customers, CreateCustomer } from "./customers.types";
+import type { Customer, Customers, CustomerPayload } from "./customers.types";
 
 class CustomersService {
   constructor(
@@ -9,19 +9,20 @@ class CustomersService {
   ) {}
 
   async getData(): Promise<Customers> {
-    const { data } = await this.apiService.get(this.apiRoute);
+    const { data } = await this.apiService.get<Customers>(this.apiRoute);
     return data;
   }
 
-  async createCustomer(payload: CreateCustomer): Promise<any> {
-    return await this.apiService.post(this.apiRoute, payload);
+  async createCustomer(payload: CustomerPayload): Promise<Customer> {
+    const { data } = await this.apiService.post<Customer>(this.apiRoute, payload);
+    return data;
   }
 
-  async updateCustomer(id: string, payload: CreateCustomer): Promise<void> {
+  async updateCustomer(id: number, payload: CustomerPayload): Promise<void> {
     await this.apiService.put(`${this.apiRoute}/${id}`, payload);
   }
 
-  async deleteCustomer(id: string): Promise<void> {
+  async deleteCustomer(id: number): Promise<void> {
     await this.apiService.delete(`${this.apiRoute}/${id}`);
   }
 }
