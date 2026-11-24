@@ -1,12 +1,12 @@
-import { ref, reactive, toRefs } from "vue";
+import { reactive, toRefs } from "vue";
 import customersService from "../services/customers.service";
-import type { Customers, CreateCustomer } from "../services/customers.types";
+import type { Customers, CustomerPayload } from "../services/customers.types";
 import { useToast } from "primevue/usetoast";
-
-const initialized = ref(false);
+import { getApiErrorMessage } from "@/helpers/api-error.helper";
 
 const state = reactive({
-  isLoading: true,
+  isLoading: false,
+  isSaving: false,
   hasError: false,
   customers: [] as Customers,
 });
@@ -27,79 +27,60 @@ const getData = async () => {
 export const useCustomers = () => {
   const toast = useToast();
 
-  const createCustomer = async (payload: CreateCustomer) => {
+  const notifyError = (summary: string, error: unknown) =>
+    toast.add({
+      severity: "error",
+      summary,
+      detail: getApiErrorMessage(error, "Tente novamente em instantes."),
+      life: 5000,
+    });
+
+  // Retornam true/false para a tela decidir se fecha o formulário
+  // (antes o formulário era apagado mesmo quando dava erro).
+  const createCustomer = async (payload: CustomerPayload): Promise<boolean> => {
     try {
-      state.isLoading = true;
+      state.isSaving = true;
       await customersService.createCustomer(payload);
-      toast.add({
-        severity: "success",
-        summary: "Sucesso!",
-        detail: "Cliente criado com sucesso.",
-        life: 3000,
-      });
+      toast.add({ severity: "success", summary: "Cliente cadastrado", life: 3000 });
       await getData();
+      return true;
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Erro!",
-        detail: "Houve um erro ao criar o cliente.",
-        life: 3000,
-      });
+      notifyError("Não foi possível cadastrar", error);
+      return false;
     } finally {
-      state.isLoading = false;
+      state.isSaving = false;
     }
   };
 
-  const updateCustomer = async (id: string, payload: CreateCustomer) => {
+  const updateCustomer = async (id: number, payload: CustomerPayload): Promise<boolean> => {
     try {
-      state.isLoading = true;
+      state.isSaving = true;
       await customersService.updateCustomer(id, payload);
-      toast.add({
-        severity: "success",
-        summary: "Sucesso!",
-        detail: "Cliente atualizado com sucesso.",
-        life: 3000,
-      });
+      toast.add({ severity: "success", summary: "Cliente atualizado", life: 3000 });
       await getData();
+      return true;
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Erro!",
-        detail: "Houve um erro ao atualizar o cliente.",
-        life: 3000,
-      });
+      notifyError("Não foi possível salvar", error);
+      return false;
     } finally {
-      state.isLoading = false;
+      state.isSaving = false;
     }
   };
 
-  const deleteCustomer = async (id: string) => {
+  const deleteCustomer = async (id: number): Promise<boolean> => {
     try {
-      state.isLoading = true;
+      state.isSaving = true;
       await customersService.deleteCustomer(id);
-      toast.add({
-        severity: "success",
-        summary: "Sucesso!",
-        detail: "Cliente excluído com sucesso.",
-        life: 3000,
-      });
+      toast.add({ severity: "success", summary: "Cliente excluído", life: 3000 });
       await getData();
+      return true;
     } catch (error) {
-      toast.add({
-        severity: "error",
-        summary: "Erro!",
-        detail: "Houve um erro ao excluir o cliente.",
-        life: 3000,
-      });
+      notifyError("Não foi possível excluir", error);
+      return false;
     } finally {
-      state.isLoading = false;
+      state.isSaving = false;
     }
   };
-
-  if (!initialized.value) {
-    getData();
-    initialized.value = true;
-  }
 
   return {
     ...toRefs(state),

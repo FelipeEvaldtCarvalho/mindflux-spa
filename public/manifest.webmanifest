@@ -1,0 +1,11 @@
+{
+  "name": "MindFlux",
+  "short_name": "MindFlux",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dbeafe",
+  "icons": [
+    { "src": "/fav.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

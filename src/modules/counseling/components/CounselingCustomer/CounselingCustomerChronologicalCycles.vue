@@ -4,53 +4,43 @@ export default {
 };
 </script>
 <script setup lang="ts">
-import TabPanel from "primevue/tabpanel";
 import DatePicker from "primevue/datepicker";
 import DraggableList from "./DraggableList.vue";
 import CycleForm from "./CycleForm.vue";
-import ConfirmPopup from "primevue/confirmpopup";
-import { onMounted } from "vue";
-
 import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
 
-const {
-  selectedDate,
-  getData,
-  list,
-  isLoading,
-  isSaving,
-  saveOrder,
-  deleteCycle,
-} = useChronologicalCycle();
+const { selectedDate, list, isLoading, isSaving, isSavingOrder, reorder, deleteCycle, updateCycle } =
+  useChronologicalCycle();
 
-onMounted(getData);
+const today = new Date();
 </script>
 <template>
-  <ConfirmPopup />
-  <TabPanel value="1">
-    <div class="flex flex-col gap-8">
-      <div class="flex flex-col gap-2">
-        <label class="font-bold" for="name"
-          >Selecione a data do atendimento:</label
-        >
-        <DatePicker
-          showIcon
-          iconDisplay="input"
-          class="w-full md:w-[350px]"
-          :showButtonBar="false"
-          v-model="selectedDate"
-          :disabled="isLoading"
-          :maxDate="new Date()"
-        />
-      </div>
-      <DraggableList
-        v-model="list"
-        :loading="isLoading"
-        :saving="isSaving"
-        @save="saveOrder"
-        @delete:selected="deleteCycle"
+  <div class="grid gap-6">
+    <div class="grid gap-2 w-full sm:w-80">
+      <label class="font-semibold" for="cycle-date">Data do atendimento</label>
+      <DatePicker
+        inputId="cycle-date"
+        v-model="selectedDate"
+        showIcon
+        iconDisplay="input"
+        :manualInput="false"
+        :maxDate="today"
+        :disabled="isLoading"
+        dateFormat="dd/mm/yy"
+        fluid
       />
-      <CycleForm />
     </div>
-  </TabPanel>
+
+    <DraggableList
+      :modelValue="list"
+      :loading="isLoading"
+      :saving="isSaving"
+      :savingOrder="isSavingOrder"
+      @update:modelValue="reorder"
+      @delete="deleteCycle"
+      @edit="updateCycle"
+    />
+
+    <CycleForm />
+  </div>
 </template>

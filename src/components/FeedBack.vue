@@ -16,7 +16,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="p-6 flex flex-col items-center gap-2">
+  <div class="p-6 flex flex-col items-center gap-3">
     <div
       v-if="icon"
       class="bg-primary-200 rounded-full p-4 aspect-square flex items-center justify-center"
@@ -25,10 +25,10 @@ defineProps<{
         {{ icon }}
       </span>
     </div>
-    <p v-if="title" class="text-xlg font-semibold text-center">
+    <p v-if="title" class="text-lg font-semibold text-center">
       {{ title }}
     </p>
-    <p v-if="description" class="text-sm text-gray-600 text-center">
+    <p v-if="description" class="text-surface-600 text-center max-w-md">
       {{ description }}
     </p>
     <Button

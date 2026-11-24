@@ -11,6 +11,92 @@
   --p-progressspinner-color-four: var(--p-primary-500) !important;
 }
 
-* {
-  font-family: "Montserrat", sans-serif;
+html {
+  /* Safari não aumenta fontes sozinho ao girar o iPad */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: "Montserrat", system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--p-surface-800);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  /* Respeita as bordas arredondadas/barra de status quando aberto como app */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+    env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Componentes do PrimeVue herdam a fonte do app */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}
+
+/* Campos com 16px: abaixo disso o Safari dá zoom ao focar */
+input,
+select,
+textarea,
+.p-inputtext,
+.p-select-label,
+.p-textarea {
+  font-size: 16px !important;
+}
+
+.material-symbols-outlined {
+  font-size: 24px;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Hierarquia de títulos usada nas páginas */
+.page-title {
+  font-size: 1.625rem; /* 26px */
+  line-height: 1.25;
+  font-weight: 700;
+  color: var(--p-primary-900);
+}
+
+.section-title {
+  font-size: 1.125rem; /* 18px */
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--p-primary-900);
+}
+
+/* ---------- Telas de toque (iPad) ---------- */
+@media (pointer: coarse) {
+  /* Alvos de toque com pelo menos 44px (recomendação da Apple) */
+  .p-button:not(.p-button-icon-only) {
+    min-height: 44px;
+  }
+  .p-button.p-button-icon-only {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .p-inputtext,
+  .p-select,
+  .p-password-input {
+    min-height: 44px;
+  }
+  .p-menu-item-link,
+  .p-select-option {
+    min-height: 44px;
+  }
+  .p-datatable .p-datatable-tbody > tr > td {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+  .p-tab {
+    padding-top: 0.875rem;
+    padding-bottom: 0.875rem;
+  }
+  .p-datepicker-day {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
 }

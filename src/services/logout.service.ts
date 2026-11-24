@@ -1,9 +1,10 @@
 import router from "../router";
+import { clearSession } from "./session.service";
 
 class LogoutService {
   logout(): void {
-    localStorage.removeItem("user_token");
-    router.push("/auth/login");
+    clearSession();
+    router.push({ name: "auth.login" });
   }
 }
 

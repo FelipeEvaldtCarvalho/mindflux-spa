@@ -1,8 +1,3 @@
-export interface Customer {
-  id: number;
-  name?: string;
-}
-
 export interface UpdateOrderPayload {
   id: number;
   order: number;
@@ -10,12 +5,11 @@ export interface UpdateOrderPayload {
 
 export interface ChronologicalCycle {
   id: number;
-  customer: Customer;
-  date: Date;
-  cycle: string;
-  fase: string;
-  emotionalScale: string;
-  physicalScale: string;
+  date: string; // "AAAA-MM-DD"
+  cycle: string | null;
+  fase: string | null;
+  emotionalScale: string | null;
+  physicalScale: string | null;
   order: number;
 }
 
@@ -35,12 +29,5 @@ export interface ChronologicalCycleFormData {
   physicalScale: string;
 }
 
-export interface ChronologicalCycleList {
-  [key: string]: {
-    id: number;
-    cycle: string;
-    fase: string;
-    emotionalScale: string;
-    physicalScale: string;
-  }[];
-}
+// Ciclos agrupados por data ("AAAA-MM-DD"), da mais recente para a mais antiga.
+export type ChronologicalCycleList = Record<string, ChronologicalCycle[]>;

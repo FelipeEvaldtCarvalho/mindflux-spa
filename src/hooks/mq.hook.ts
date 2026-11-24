@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref } from "vue";
 
 const breakpoints = {
   sm: 640,
@@ -10,40 +10,31 @@ const breakpoints = {
 
 type Breakpoint = keyof typeof breakpoints;
 
-export const useBreakpoint = () => {
-  const current = ref<Breakpoint | null>(null);
-
-  const getBreakpoint = () => {
-    const width = window.innerWidth;
-    if (width >= breakpoints["2xl"]) return "2xl";
-    if (width >= breakpoints.xl) return "xl";
-    if (width >= breakpoints.lg) return "lg";
-    if (width >= breakpoints.md) return "md";
-    if (width >= breakpoints.sm) return "sm";
-    return null;
-  };
-
-  const update = () => {
-    current.value = getBreakpoint();
-  };
-
-  onMounted(() => {
-    update();
-    window.addEventListener("resize", update);
-  });
-
-  onUnmounted(() => {
-    window.removeEventListener("resize", update);
-  });
-
-  return {
-    breakpoint: current,
-    isSmAndUp: () => current.value !== null,
-    isMdAndUp: () =>
-      current.value && ["md", "lg", "xl", "2xl"].includes(current.value),
-    isLgAndUp: () =>
-      current.value && ["lg", "xl", "2xl"].includes(current.value),
-    isXlAndUp: () => current.value && ["xl", "2xl"].includes(current.value),
-    is2xl: () => current.value === "2xl",
-  };
+const getBreakpoint = (): Breakpoint | null => {
+  const width = window.innerWidth;
+  if (width >= breakpoints["2xl"]) return "2xl";
+  if (width >= breakpoints.xl) return "xl";
+  if (width >= breakpoints.lg) return "lg";
+  if (width >= breakpoints.md) return "md";
+  if (width >= breakpoints.sm) return "sm";
+  return null;
 };
+
+// Um único listener para o app todo, com o valor certo já no primeiro render
+// (antes começava em null e o iPad na horizontal piscava o layout de celular).
+const current = ref<Breakpoint | null>(getBreakpoint());
+window.addEventListener("resize", () => {
+  current.value = getBreakpoint();
+});
+
+const atLeast = (...names: Breakpoint[]) =>
+  !!current.value && names.includes(current.value);
+
+export const useBreakpoint = () => ({
+  breakpoint: current,
+  isSmAndUp: () => current.value !== null,
+  isMdAndUp: () => atLeast("md", "lg", "xl", "2xl"),
+  isLgAndUp: () => atLeast("lg", "xl", "2xl"),
+  isXlAndUp: () => atLeast("xl", "2xl"),
+  is2xl: () => current.value === "2xl",
+});

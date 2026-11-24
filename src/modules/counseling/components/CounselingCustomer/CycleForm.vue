@@ -5,6 +5,7 @@ export default {
 </script>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import Button from "primevue/button";
 import InputText from "primevue/inputtext";
 import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-cycle.hook";
@@ -12,66 +13,62 @@ import { useChronologicalCycle } from "@/modules/counseling/hooks/chronological-
 const { fase, cycle, emotionalScale, physicalScale, createCycle, isSaving } =
   useChronologicalCycle();
 
-const addCycle = async () => {
-  if (!fase.value || !cycle.value) {
-    return;
-  }
-  await createCycle();
-};
+const isFormValid = computed(() => !!fase.value.trim() && !!cycle.value.trim());
 
-const isFormValid = () => {
-  return fase.value?.trim() !== "" && cycle.value?.trim() !== "";
+const addCycle = async () => {
+  if (!isFormValid.value || isSaving.value) return;
+  if (await createCycle()) {
+    // Volta o foco para o primeiro campo: agiliza lançar vários ciclos seguidos.
+    document.getElementById("new-fase")?.focus();
+  }
 };
 </script>
 
 <template>
-  <div class="flex gap-4">
-    <div class="flex flex-col gap-2 pt-3">
+  <form
+    class="grid gap-3 p-4 rounded-xl border border-surface-200 bg-surface-50"
+    @submit.prevent="addCycle"
+  >
+    <h3 class="section-title">Adicionar ciclo</h3>
+    <div class="grid grid-cols-2 md:grid-cols-[1fr_1fr_1fr_1fr_auto] gap-3 items-end">
+      <div class="grid gap-1">
+        <label for="new-fase" class="text-sm font-medium">Fase *</label>
+        <InputText id="new-fase" v-model="fase" :disabled="isSaving" fluid />
+      </div>
+      <div class="grid gap-1">
+        <label for="new-cycle" class="text-sm font-medium">Ciclo *</label>
+        <InputText id="new-cycle" v-model="cycle" :disabled="isSaving" fluid />
+      </div>
+      <div class="grid gap-1">
+        <label for="new-emotional" class="text-sm font-medium">Escala emocional</label>
+        <InputText
+          id="new-emotional"
+          v-model="emotionalScale"
+          placeholder="0 a 10"
+          :disabled="isSaving"
+          fluid
+        />
+      </div>
+      <div class="grid gap-1">
+        <label for="new-physical" class="text-sm font-medium">Escala física</label>
+        <InputText
+          id="new-physical"
+          v-model="physicalScale"
+          placeholder="0 a 10"
+          :disabled="isSaving"
+          fluid
+          enterkeyhint="done"
+        />
+      </div>
       <Button
+        type="submit"
         icon="pi pi-plus"
-        severity="success"
-        rounded
-        @click="addCycle"
+        label="Adicionar"
+        class="col-span-2 md:col-span-1"
         :loading="isSaving"
-        :disabled="!isFormValid() || isSaving"
-        title="Adicionar novo ciclo"
+        :disabled="!isFormValid"
       />
     </div>
-
-    <div class="flex-1 border border-gray-300 rounded-md overflow-hidden">
-      <div class="bg-gray-50 border-b border-gray-300">
-        <div class="grid grid-cols-[100px_80px_1fr_1fr] gap-2 p-3">
-          <InputText
-            v-model="fase"
-            placeholder="Fase"
-            class="text-sm"
-            :disabled="isSaving"
-          />
-          <InputText
-            v-model="cycle"
-            placeholder="Ciclo"
-            class="text-sm"
-            :disabled="isSaving"
-          />
-          <InputText
-            v-model="emotionalScale"
-            placeholder="Escala Emocional"
-            class="text-sm"
-            :disabled="isSaving"
-          />
-          <InputText
-            v-model="physicalScale"
-            placeholder="Escala Física"
-            class="text-sm"
-            :disabled="isSaving"
-          />
-        </div>
-      </div>
-
-      <!-- Dica de uso -->
-      <div class="p-2 text-xs text-gray-400 text-center">
-        Preencha pelo menos Fase e Ciclo para adicionar
-      </div>
-    </div>
-  </div>
+    <p class="text-sm text-surface-500">Fase e ciclo são obrigatórios.</p>
+  </form>
 </template>

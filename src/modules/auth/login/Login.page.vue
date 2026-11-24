@@ -3,52 +3,60 @@ import InputText from "primevue/inputtext";
 import Password from "primevue/password";
 import Button from "primevue/button";
 import { useLogin } from "./hooks/login.hook";
-import { useRouter } from "vue-router";
 
-const { email, password, login, isDisabledButton } = useLogin();
-const { push } = useRouter();
+const { email, password, login, isDisabledButton, isSubmitting } = useLogin();
 </script>
 <template>
   <form
-    class="flex items-center justify-center min-h-screen w-full"
+    class="flex items-center justify-center min-h-dvh w-full p-6"
     @submit.prevent="login"
   >
-    <div class="flex flex-col items-center justify-center gap-8 w-80">
-      <span class="material-symbols-outlined !text-8xl text-primary-900">
-        network_intel_node
-      </span>
-      <p class="text-lg text-primary-900 font-semibold">Entrar</p>
-      <div class="grid gap-4 w-full text-center">
-        <InputText type="text" v-model="email" placeholder="Email" fluid />
-        <Password
-          v-model="password"
-          :feedback="false"
-          placeholder="Senha"
-          fluid
-          class="w-full"
-          toggleMask
-        />
+    <div class="flex flex-col items-center gap-8 w-full max-w-sm">
+      <div class="flex flex-col items-center gap-2 text-primary-900">
+        <span class="material-symbols-outlined !text-8xl">network_intel_node</span>
+        <h1 class="page-title">MindFlux</h1>
+        <p class="text-surface-600">Entre com sua conta</p>
       </div>
-      <div class="grid gap-2 w-full text-center">
+      <div class="grid gap-4 w-full">
+        <div class="grid gap-1">
+          <label for="email" class="font-medium">E-mail</label>
+          <!-- Sem autocapitalização/correção: o teclado do iPad coloca maiúscula no início -->
+          <InputText
+            id="email"
+            v-model="email"
+            type="email"
+            inputmode="email"
+            autocomplete="username"
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+            fluid
+          />
+        </div>
+        <div class="grid gap-1">
+          <label for="password" class="font-medium">Senha</label>
+          <Password
+            inputId="password"
+            v-model="password"
+            :feedback="false"
+            :inputProps="{ autocomplete: 'current-password' }"
+            fluid
+            toggleMask
+          />
+        </div>
+      </div>
+      <div class="grid gap-3 w-full text-center">
         <Button
-          label="Login"
+          label="Entrar"
           type="submit"
           fluid
+          size="large"
+          :loading="isSubmitting"
           :disabled="isDisabledButton"
         />
-        <a href="#" class="text-surface-500 text-xs text-center">
-          Esqueceu sua senha?
-        </a>
-      </div>
-      <div class="grid gap-2 w-full text-center">
-        <p class="text-sm">Não tem uma conta?</p>
-        <Button
-          label="Criar uma conta"
-          fluid
-          size="small"
-          text
-          @click="push({ name: 'auth.create' })"
-        />
+        <p class="text-sm text-surface-500">
+          Esqueceu a senha? Fale com o administrador do sistema.
+        </p>
       </div>
     </div>
   </form>
